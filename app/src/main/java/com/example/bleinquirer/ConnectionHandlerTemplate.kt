@@ -22,6 +22,8 @@ open class Error(val message: String) : Result() {
 
 object TimedOut : Error("timeout")
 object Busy : Error("busy")
+object NotConnected : Error("not connected")
+object NotDiscovered : Error("not discovered")
 
 class ConnectionHandlerTemplate {
 
@@ -34,23 +36,16 @@ class ConnectionHandlerTemplate {
     }
 
     private enum class ReadingState {
-        NOT_READ, READING, READ
+        READING, READ
     }
 
     private enum class Operation {
-        NONE, CONNECTING, DISCOVERING, READING, DISCONNECTING
+        NONE, CONNECT, DISCOVER, READ, DISCONNECT
     }
-
-    /*private enum class OperationState {
-        NOT_STARTED, IN_PROGRESS, COMPLETED
-    }
-
-    private data class CurrentOperation(val operation: Operation, val state: OperationState, val result: Result)
-    private val myCurrentOperation = AtomicReference(CurrentOperation(Operation.NONE, OperationState.NOT_STARTED, Busy))*/
 
     private val connectionState = AtomicReference(ConnectionState.NOT_CONNECTED)
     private val discoveryState = AtomicReference(DiscoveryState.NOT_DISCOVERED)
-    private val readingState = AtomicReference(ReadingState.NOT_READ)
+    private val readingState = AtomicReference(ReadingState.READ)
 
     private val currentOperation = AtomicReference(Operation.NONE)
     private val operationResult = AtomicReference<Result>(null)
@@ -68,17 +63,39 @@ class ConnectionHandlerTemplate {
         lock.withLock { condition.signalAll() }
     }
 
+    private fun tryStartOperation(operation: Operation) =
+        currentOperation.compareAndSet(Operation.NONE, operation)
+
+    private fun isConnected() = connectionState.get() == ConnectionState.CONNECTED
+
+    private fun tryStartConnecting() =
+        connectionState.compareAndSet(ConnectionState.NOT_CONNECTED, ConnectionState.CONNECTING)
+
+    private fun tryStartDisconnecting() =
+        connectionState.compareAndSet(ConnectionState.CONNECTED, ConnectionState.DISCONNECTING)
+
+    private fun isDiscovered() = discoveryState.get() == DiscoveryState.DISCOVERED
+
+    private fun tryStartDiscovering() =
+        discoveryState.compareAndSet(DiscoveryState.NOT_DISCOVERED, DiscoveryState.DISCOVERING)
+
+    private fun completeDiscovering(state: DiscoveryState) =
+        discoveryState.compareAndSet(DiscoveryState.DISCOVERING, state)
+
+    private fun tryStartReading() =
+        readingState.compareAndSet(ReadingState.READ, ReadingState.READING)
+
+    private fun isRead() = readingState.get() == ReadingState.READ
+
+    private fun completeReading() =
+        readingState.compareAndSet(ReadingState.READING, ReadingState.READ)
+
     fun handleConnectionRequest(timeout: Timeout): Result {
-        if (!currentOperation.compareAndSet(Operation.NONE, Operation.CONNECTING)) {
+        if (!tryStartOperation(Operation.CONNECT))
             return Busy
-        }
 
         try {
-            if (connectionState.compareAndSet(
-                    ConnectionState.NOT_CONNECTED,
-                    ConnectionState.CONNECTING
-                )
-            ) {
+            if (tryStartConnecting()) {
                 if (awaitCompletion(timeout) is TimedOut) {
                     connectionState.compareAndSet(
                         ConnectionState.CONNECTING,
@@ -88,25 +105,20 @@ class ConnectionHandlerTemplate {
                 }
             }
 
-            return if (connectionState.get() == ConnectionState.CONNECTED) Success else operationResult.get()
+            return if (isConnected()) Success else operationResult.get()
         } finally {
             currentOperation.set(Operation.NONE)
         }
     }
 
     fun handleDisconnectionRequest(timeout: Timeout): Result {
-        if (!currentOperation.compareAndSet(Operation.NONE, Operation.DISCONNECTING)) {
+        if (!tryStartOperation(Operation.DISCONNECT))
             return Busy
-        }
 
         try {
-            if (connectionState.compareAndSet(
-                    ConnectionState.CONNECTED,
-                    ConnectionState.DISCONNECTING
-                )
-            ) {
+            if (tryStartDisconnecting())
                 return awaitCompletion(timeout)
-            }
+
             return if (connectionState.get() == ConnectionState.NOT_CONNECTED) Success else operationResult.get()
         } finally {
             currentOperation.set(Operation.NONE)
@@ -122,30 +134,24 @@ class ConnectionHandlerTemplate {
     fun handleDisconnected(reason: Result) {
         connectionState.set(ConnectionState.NOT_CONNECTED)
         discoveryState.set(DiscoveryState.NOT_DISCOVERED)
-        readingState.set(ReadingState.NOT_READ)
+        readingState.set(ReadingState.READ)
         signalCompletion(reason)
     }
 
     fun handleDiscoveryRequest(timeout: Timeout): Result {
-        if (!currentOperation.compareAndSet(Operation.NONE, Operation.DISCOVERING)) {
+        if (!tryStartOperation(Operation.DISCOVER))
             return Busy
-        }
 
         try {
-            if (connectionState.get() == ConnectionState.CONNECTED
-                && discoveryState.compareAndSet(
-                    DiscoveryState.NOT_DISCOVERED,
-                    DiscoveryState.DISCOVERING
-                )
-                && awaitCompletion(timeout) is TimedOut
-            ) {
-                discoveryState.compareAndSet(
-                    DiscoveryState.DISCOVERING,
-                    DiscoveryState.NOT_DISCOVERED
-                )
+            if (!isConnected())
+                return NotConnected
+
+            if (tryStartDiscovering() && awaitCompletion(timeout) is TimedOut) {
+                completeDiscovering(DiscoveryState.NOT_DISCOVERED)
                 return TimedOut
             }
-            return if (discoveryState.get() == DiscoveryState.DISCOVERED) Success else operationResult.get()
+
+            return if (isDiscovered()) Success else operationResult.get()
         } finally {
             currentOperation.set(Operation.NONE)
         }
@@ -162,20 +168,21 @@ class ConnectionHandlerTemplate {
     }
 
     fun handleReadRequest(timeout: Timeout): Result {
-        if (!currentOperation.compareAndSet(Operation.NONE, Operation.READING)) {
+        if (!tryStartOperation(Operation.READ))
             return Busy
-        }
 
         try {
-            if (connectionState.get() == ConnectionState.CONNECTED
-                && discoveryState.get() == DiscoveryState.DISCOVERED
-                && readingState.compareAndSet(ReadingState.NOT_READ, ReadingState.READING)
-                && awaitCompletion(timeout) is TimedOut
-            ) {
-                readingState.compareAndSet(ReadingState.READING, ReadingState.NOT_READ)
+            if (!isConnected())
+                return NotConnected
+
+            if (!isDiscovered())
+                return NotDiscovered
+
+            if (tryStartReading() && awaitCompletion(timeout) is TimedOut) {
+                completeReading()
                 return TimedOut
             }
-            return if (readingState.get() == ReadingState.READ) Success else operationResult.get()
+            return if (isRead()) Success else operationResult.get()
         } finally {
             currentOperation.set(Operation.NONE)
         }
