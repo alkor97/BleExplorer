@@ -7,7 +7,10 @@ import android.bluetooth.BluetoothManager
 import android.content.Context
 import android.widget.Toast
 import androidx.lifecycle.LiveData
-import kotlinx.coroutines.*
+import com.example.bleinquirer.handler.BluetoothReader
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicBoolean
 
@@ -18,10 +21,12 @@ class BtLeApplication : Application() {
         bluetoothManager.adapter
     }
 
-    private val scanningInProgress = LiveObject(AtomicBoolean(false)) {it.get()}
+    private val scanningInProgress = LiveObject(AtomicBoolean(false)) { it.get() }
     fun isScanningInProgress(): LiveData<Boolean> = scanningInProgress.live()
 
-    private val devicesModel = LiveObject<List<BtLeDeviceModel>, MutableList<BtLeDeviceModel>>(mutableListOf())
+    private val devicesModel =
+        LiveObject<List<BtLeDeviceModel>, MutableList<BtLeDeviceModel>>(mutableListOf())
+
     fun getDevicesModel() = devicesModel.live()
     private val devices = mutableListOf<BluetoothDevice>()
 
@@ -29,7 +34,7 @@ class BtLeApplication : Application() {
         val scanTimeout = DEFAULT_SCAN_TIMEOUT
         val readTimeout = DEFAULT_BATTERY_READ_TIMEOUT
 
-        if (scanningInProgress.update { it.compareAndSet(false, true)}) {
+        if (scanningInProgress.update { it.compareAndSet(false, true) }) {
             devices.clear()
             devicesModel.update {
                 it.clear()
@@ -40,10 +45,10 @@ class BtLeApplication : Application() {
                 scanForDevices(scanTimeout)
                 showToast("Scanning completed with %d devices".format(devices.size))
 
-                devices.forEachIndexed {index, device ->
+                devices.forEachIndexed { index, device ->
                     val (batteryLevel, error) = readBatteryLevel(device, readTimeout) {
                         val msg = it
-                        devicesModel.update {devicesModel ->
+                        devicesModel.update { devicesModel ->
                             devicesModel[index] = BtLeDeviceModel(
                                 device.address,
                                 device.name,
@@ -54,9 +59,19 @@ class BtLeApplication : Application() {
                         }
                     }
                     if (batteryLevel != null) {
-                        showToast("Battery level of %s is %d%%".format(device.description, batteryLevel))
+                        showToast(
+                            "Battery level of %s is %d%%".format(
+                                device.description,
+                                batteryLevel
+                            )
+                        )
                     } else {
-                        showToast("Battery level of %s is unknown due to %s".format(device.description, error))
+                        showToast(
+                            "Battery level of %s is unknown due to %s".format(
+                                device.description,
+                                error
+                            )
+                        )
                     }
 
                     devicesModel.update {
@@ -93,12 +108,14 @@ class BtLeApplication : Application() {
     private fun addDevice(device: BluetoothDevice) {
         devices.add(device)
         devicesModel.update {
-            it.add(BtLeDeviceModel(
-                device.address,
-                device.name,
-                null,
-                null
-            ))
+            it.add(
+                BtLeDeviceModel(
+                    device.address,
+                    device.name,
+                    null,
+                    null
+                )
+            )
             true
         }
     }
@@ -109,10 +126,15 @@ class BtLeApplication : Application() {
         }
     }
 
-    private fun readBatteryLevel(device: BluetoothDevice, timeout: Timeout, reporter: (String) -> Unit)
+    /*private fun readBatteryLevel(device: BluetoothDevice, timeout: Timeout, reporter: (String) -> Unit)
             = BtBatteryLevelReader(applicationContext, fun (action, result, reason) {
         reporter("$action $result $reason")
-    }).readBatteryLevel(device, timeout.value, timeout.unit)
+    }).readBatteryLevel(device, timeout.value, timeout.unit)*/
+    private fun readBatteryLevel(
+        device: BluetoothDevice,
+        timeout: Timeout,
+        reporter: (String) -> Unit
+    ) = BluetoothReader(applicationContext, device).readBatteryLevel(timeout, reporter)
 
     companion object {
         val DEFAULT_SCAN_TIMEOUT = Timeout(30, TimeUnit.SECONDS)

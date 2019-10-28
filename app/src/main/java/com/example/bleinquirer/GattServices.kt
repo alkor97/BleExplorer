@@ -105,4 +105,8 @@ object GattServices {
         }
         return uuid
     }
+
+    fun getName(uuid: UUID): String {
+        return getName(uuid.toString())
+    }
 }
