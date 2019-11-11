@@ -50,6 +50,8 @@ object GattServices {
 
     val XIAOMI_ROOT_SERVICE = UUID.fromString("0000fe95-0000-1000-8000-00805f9b34fb")
     val XIAOMI_DATA_SERVICE = UUID.fromString("00001204-0000-1000-8000-00805f9b34fb")
+    val XIAOMI_MIJIA_DATA_SERVICE = UUID.fromString("226c0000-6476-4566-7562-66734470666d")
+    val NORDIC_DEVICE_FIRMWARE_UPDATE = UUID.fromString("00001530-1212-efde-1523-785feabcd123")
 
     val NAMES = hashMapOf(
         GENERIC_ACCESS.toString() to "Generic Access",
@@ -95,7 +97,9 @@ object GattServices {
         BINARY_SENSOR.toString() to "Binary Sensor",
         EMERGENCY_CONNFIGURATION.toString() to "Emergency Configuration",
         XIAOMI_ROOT_SERVICE.toString() to "Xiaomi Root Service",
-        XIAOMI_DATA_SERVICE.toString() to "Xiaomi Data Service"
+        XIAOMI_DATA_SERVICE.toString() to "Xiaomi Data Service",
+        NORDIC_DEVICE_FIRMWARE_UPDATE.toString() to "Nordic Device Firmware Update",
+        XIAOMI_MIJIA_DATA_SERVICE.toString() to "Xiaomi Mijia Data Service"
     )
 
     fun getName(uuid: String): String {
