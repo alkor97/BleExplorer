@@ -48,8 +48,6 @@ class Generator {
         final JFieldVar fullName = definedClass.field(JMod.PUBLIC | JMod.FINAL, String.class, "fullName");
         // public final String shortUuidString;
         final JFieldVar shortUuidString = definedClass.field(JMod.PUBLIC | JMod.FINAL, String.class, "shortUuidString");
-        // public final UUID shortUuid;
-        final JFieldVar shortUuid = definedClass.field(JMod.PUBLIC | JMod.FINAL, UUID.class, "shortUuid");
         // public final String uuidString
         final JFieldVar uuidString = definedClass.field(JMod.PUBLIC | JMod.FINAL, String.class, "uuidString");
         // public final UUID uuid;
@@ -68,10 +66,6 @@ class Generator {
             // this.shortUuid = shortUuid;
             block.assign(JExpr._this().ref(shortUuidString), paramShortUuidString);
 
-            final JClass uuidClass = model.ref(UUID.class);
-            // this.shortUuid = UUID.fromString(shortUuidString);
-            block.assign(JExpr._this().ref(shortUuid), uuidClass.staticInvoke("fromString").arg(paramShortUuidString));
-
             final JClass stringClass = model.ref(String.class);
             // this.uuidString = String.format("%1$8s-0000-1000-8000-00805f9b34fb", shortUuidString).replace(' ', '0');
             block.assign(JExpr._this().ref(uuidString),
@@ -79,6 +73,7 @@ class Generator {
                             .invoke("replace").arg(JExpr.lit(' ')).arg(JExpr.lit('0')));
 
             // this.uuid = UUID.fromString(this.uuidString);
+            final JClass uuidClass = model.ref(UUID.class);
             block.assign(JExpr._this().ref(uuid), uuidClass.staticInvoke("fromString").arg(JExpr._this().ref(uuidString)));
         }
         // }

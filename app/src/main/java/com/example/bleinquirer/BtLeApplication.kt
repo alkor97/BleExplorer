@@ -5,6 +5,7 @@ import android.bluetooth.BluetoothAdapter
 import android.bluetooth.BluetoothDevice
 import android.bluetooth.BluetoothManager
 import android.content.Context
+import android.util.Log
 import android.widget.Toast
 import androidx.lifecycle.LiveData
 import com.example.bleinquirer.handler.BluetoothReader
@@ -42,52 +43,56 @@ class BtLeApplication : Application() {
             }
 
             GlobalScope.launch {
-                scanForDevices(scanTimeout)
-                showToast("Scanning completed with %d devices".format(devices.size))
+                try {
+                    scanForDevices(scanTimeout)
+                    showToast("Scanning completed with %d devices".format(devices.size))
 
-                devices.forEachIndexed { index, device ->
-                    val (batteryLevel, error) = readBatteryLevel(device, readTimeout) {
-                        val msg = it
-                        devicesModel.update { devicesModel ->
-                            devicesModel[index] = BtLeDeviceModel(
+                    devices.forEachIndexed { index, device ->
+                        val (batteryLevel, error) = readBatteryLevel(device, readTimeout) {
+                            val msg = it
+                            devicesModel.update { devicesModel ->
+                                devicesModel[index] = BtLeDeviceModel(
+                                    device.address,
+                                    device.name,
+                                    devicesModel[index].batteryLevel,
+                                    (devicesModel[index].error ?: "") + "\n$msg"
+                                )
+                                true
+                            }
+                        }
+                        if (batteryLevel != null) {
+                            showToast(
+                                "Battery level of %s is %d%%".format(
+                                    device.description,
+                                    batteryLevel
+                                )
+                            )
+                        } else {
+                            showToast(
+                                "Battery level of %s is unknown due to %s".format(
+                                    device.description,
+                                    error
+                                )
+                            )
+                        }
+
+                        devicesModel.update {
+                            it[index] = BtLeDeviceModel(
                                 device.address,
                                 device.name,
-                                devicesModel[index].batteryLevel,
-                                (devicesModel[index].error ?: "") + "\n$msg"
+                                batteryLevel,
+                                it[index].error
                             )
                             true
                         }
                     }
-                    if (batteryLevel != null) {
-                        showToast(
-                            "Battery level of %s is %d%%".format(
-                                device.description,
-                                batteryLevel
-                            )
-                        )
-                    } else {
-                        showToast(
-                            "Battery level of %s is unknown due to %s".format(
-                                device.description,
-                                error
-                            )
-                        )
-                    }
 
-                    devicesModel.update {
-                        it[index] = BtLeDeviceModel(
-                            device.address,
-                            device.name,
-                            batteryLevel,
-                            it[index].error
-                        )
+                    scanningInProgress.update {
+                        it.set(false)
                         true
                     }
-                }
-
-                scanningInProgress.update {
-                    it.set(false)
-                    true
+                } catch (e: Throwable) {
+                    Log.e("BtCoroutine", "exception while processing", e)
                 }
             }
             return true
