@@ -1,0 +1,29 @@
+plugins {
+    id 'java'
+}
+
+sourceCompatibility = 1.8
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    testCompile group: 'junit', name: 'junit', version: '4.12'
+}
+
+apply plugin: info.alkor.plugins.bluetooth.idgen.IdGenPlugin
+
+genServicesIds {
+}
+
+genCharacteristicsIds {
+}
+
+compileJava {
+    dependsOn genServicesIds
+    dependsOn genCharacteristicsIds
+    sourceSets.main.java.srcDirs += "$buildDir/my-generated"
+}
+
+

@@ -1,0 +1,35 @@
+plugins {
+    id 'java'
+
+    // generate Java code from XSD
+    id 'org.unbroken-dome.xjc' version '1.4.3'
+}
+
+xjc {
+    includeInMainCompilation = false
+}
+
+xjcGenerate  {
+    targetPackage = "com.bluetooth"
+}
+
+sourceSets {
+    main { java { srcDir xjcGenerate.outputDirectory } }
+}
+
+compileJava {
+    options.encoding = 'UTF-8'
+    dependsOn xjcGenerate
+}
+
+sourceCompatibility = 1.8
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    testCompile group: 'junit', name: 'junit', version: '4.12'
+    compile group: 'com.sun.istack', name: 'istack-commons-runtime', version: '3.0.8'
+    compile group: 'com.sun.codemodel', name: 'codemodel', version: '2.6'
+}
