@@ -1,2 +1,3 @@
 include ':app'
+include ':bluetooth-uuids'
 rootProject.name='BleInquirer'

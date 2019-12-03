@@ -3,10 +3,10 @@ package com.example.bleinquirer
 import android.bluetooth.BluetoothDevice
 import android.bluetooth.BluetoothGatt
 import android.bluetooth.BluetoothGattCallback
-import android.bluetooth.BluetoothProfile
 import android.content.Context
 import android.util.Log
 import androidx.annotation.WorkerThread
+import com.bluetooth.tools.Service
 import kotlinx.coroutines.delay
 import java.util.*
 import java.util.concurrent.TimeUnit
@@ -26,7 +26,7 @@ class BleServiceScanner(private val context: Context) {
                 if (status == BluetoothGatt.GATT_SUCCESS && gatt != null) {
                     Log.d(logTag(gatt), "%d services discovered".format(gatt.services.size))
                     for (service in gatt.services) {
-                        Log.d(logTag(gatt), " - " + GattServices.getName(service.uuid.toString()))
+                        Log.d(logTag(gatt), " - " + Service.getFullName(service.uuid))
                         services.add(service.uuid)
                     }
                 }

@@ -3,6 +3,8 @@ package com.example.bleinquirer
 import android.bluetooth.*
 import android.content.Context
 import android.util.Log
+import com.bluetooth.tools.Characteristic
+import com.bluetooth.tools.Service
 import java.util.*
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicInteger
@@ -29,8 +31,6 @@ class NewBatteryLevelReader(private val context: Context) {
         const val NOT_READ = 0
         const val READ = 1
         const val READING = 2
-
-        val BATTERY_LEVEL = UUID.fromString("00002a19-0000-1000-8000-00805f9b34fb")
     }
 
     private val connectionState = AtomicInteger(DISCONNECTED)
@@ -197,13 +197,13 @@ class NewBatteryLevelReader(private val context: Context) {
                 return null
             }
 
-            val service = getService(GattServices.BATTERY_SERVICE)
+            val service = getService(Service.BATTERY_SERVICE.uuid)
             if (service == null) {
                 Log.d(tag(), "no battery service")
                 return null
             }
 
-            val characteristic = service.getCharacteristic(BATTERY_LEVEL)
+            val characteristic = service.getCharacteristic(Characteristic.BATTERY_LEVEL.uuid)
             if (characteristic == null) {
                 Log.d(tag(), "no battery level characteristic")
                 return null

@@ -29,7 +29,7 @@ repositories {
 }
 
 dependencies {
-    testCompile group: 'junit', name: 'junit', version: '4.12'
-    compile group: 'com.sun.istack', name: 'istack-commons-runtime', version: '3.0.8'
-    compile group: 'com.sun.codemodel', name: 'codemodel', version: '2.6'
+    testImplementation group: 'junit', name: 'junit', version: '4.12'
+    implementation group: 'com.sun.istack', name: 'istack-commons-runtime', version: '3.0.10'
+    implementation group: 'com.sun.codemodel', name: 'codemodel', version: '2.6'
 }

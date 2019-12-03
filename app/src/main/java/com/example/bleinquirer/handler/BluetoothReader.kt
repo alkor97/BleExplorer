@@ -6,8 +6,9 @@ import android.bluetooth.BluetoothGattCallback
 import android.bluetooth.BluetoothGattCharacteristic
 import android.content.Context
 import android.util.Log
+import com.bluetooth.tools.Characteristic
+import com.bluetooth.tools.Service
 import com.example.bleinquirer.BleGatt
-import com.example.bleinquirer.GattServices
 import com.example.bleinquirer.Timeout
 import com.example.bleinquirer.description
 import java.util.*
@@ -98,18 +99,18 @@ class BluetoothReader(private val context: Context, private val device: Bluetoot
             gatt?.let {
                 val service = it.getService(serviceId)
                 if (service == null) {
-                    val name = GattServices.getName(serviceId)
+                    val name = Service.getFullName(serviceId)
                     return@handleReadRequest Error("Service $name not available")
                 }
 
                 val characteristic = service.getCharacteristic(characteristicId)
                 if (characteristic == null) {
-                    val name = GattServices.getName(characteristicId.toString())
+                    val name = Characteristic.getFullName(characteristicId)
                     return@handleReadRequest Error("Characteristic $name not available")
                 }
 
                 if (!it.readCharacteristic(characteristic)) {
-                    val name = GattServices.getName(characteristicId.toString())
+                    val name = Characteristic.getFullName(characteristicId)
                     return@handleReadRequest Error("Cannot read $name characteristic")
                 }
 
@@ -152,8 +153,7 @@ class BluetoothReader(private val context: Context, private val device: Bluetoot
                 return Pair(null, result.toString())
             }
 
-            val BATTERY_LEVEL = UUID.fromString("00002a19-0000-1000-8000-00805f9b34fb")
-            result = read(GattServices.BATTERY_SERVICE, BATTERY_LEVEL, stopWatch.remaining)
+            result = read(Service.BATTERY_SERVICE.uuid, Characteristic.BATTERY_LEVEL.uuid, stopWatch.remaining)
             Log.d(tag(device), "trying to read")
             report("read $result")
             if (result !is Success) {

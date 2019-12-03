@@ -6,6 +6,7 @@ import android.bluetooth.BluetoothGattCallback
 import android.bluetooth.BluetoothGattCharacteristic
 import android.content.Context
 import android.util.Log
+import com.bluetooth.tools.Service
 import java.util.*
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.locks.ReentrantLock
@@ -43,7 +44,7 @@ class BtBatteryLevelReader(private val context: Context, private val reporter: R
                 Log.d(tag, "services discovered with status %s".format(BleGatt.statusToString(status)))
                 if (status == BluetoothGatt.GATT_SUCCESS) {
                     report(Action.DISCOVER, Outcome.SUCCESS)
-                    val service = gatt.getService(GattServices.BATTERY_SERVICE)
+                    val service = gatt.getService(Service.BATTERY_SERVICE.uuid)
                     if (service == null) {
                         error = "Battery service not available"
                         report(Action.READ, Outcome.FAILURE, "battery service not available")
