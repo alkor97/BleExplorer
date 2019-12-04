@@ -83,64 +83,7 @@ class BtLeDevicesScanner(private val adapter: BluetoothAdapter) {
 
         return error
     }
-
-    @WorkerThread
-    suspend fun scanForDevices(timeout: Long, unit: TimeUnit = TimeUnit.SECONDS): Collection<BluetoothDevice> {
-        val devices = mutableMapOf<String,BluetoothDevice>()
-        val callback = object : ScanCallback() {
-            override fun onScanResult(callbackType: Int, result: ScanResult?) {
-                result?.apply {
-                    handleScanResult(result)
-                }
-            }
-            override fun onScanFailed(errorCode: Int) {
-                Log.e(tag, "scan failed with %s".format(scanErrorCode(errorCode)))
-            }
-            override fun onBatchScanResults(results: MutableList<ScanResult>?) {
-                results?.apply {
-                    results.forEach { handleScanResult(it) }
-                }
-            }
-            private fun handleScanResult(result: ScanResult) {
-                if (!devices.containsKey(result.device.address)) {
-                    Log.d(tag, "%s device found".format(result.device.description))
-                    devices[result.device.address] = result.device
-                }
-            }
-        }
-
-        try {
-            Log.d(tag, "starting device scan")
-            val scanSettings = ScanSettings.Builder()
-                //.setScanMode(ScanSettings.SCAN_MODE_LOW_POWER)
-                //.setCallbackType(ScanSettings.CALLBACK_TYPE_FIRST_MATCH)
-                //.setMatchMode(ScanSettings.MATCH_MODE_AGGRESSIVE)
-                //.setNumOfMatches(ScanSettings.MATCH_NUM_ONE_ADVERTISEMENT)
-                //.setReportDelay(0L)
-                .build()
-            //val filters = listOf(ScanFilter.Builder().setServiceUuid(ParcelUuid(GattServices.BATTERY_SERVICE)).build())
-            //adapter.bluetoothLeScanner.startScan(null, scanSettings, callback)
-            adapter.bluetoothLeScanner.startScan(callback)
-            Log.d(tag, "device scan started with %d%s timeout".format(timeout, unit.humanReadable))
-            delay(unit.toMillis(timeout))
-        } finally {
-            adapter.bluetoothLeScanner.stopScan(callback)
-            Log.d(tag, "device scan completed")
-        }
-        return devices.values
-    }
 }
 
 val BluetoothDevice.description: String
     get() = if (name != null && !name.isBlank()) "%s (%s)".format(address, name) else address
-
-val TimeUnit.humanReadable: String
-    get() = when (this) {
-        TimeUnit.NANOSECONDS -> "ns"
-        TimeUnit.MICROSECONDS -> "us"
-        TimeUnit.MILLISECONDS -> "ms"
-        TimeUnit.SECONDS -> "s"
-        TimeUnit.MINUTES -> "min"
-        TimeUnit.HOURS -> "h"
-        TimeUnit.DAYS -> "d"
-    }

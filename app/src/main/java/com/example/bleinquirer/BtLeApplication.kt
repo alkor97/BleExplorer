@@ -99,7 +99,7 @@ class BtLeApplication : Application() {
         return false
     }
 
-    private suspend fun scanForDevices(timeout: Timeout) {
+    private fun scanForDevices(timeout: Timeout) {
         BtLeDevicesScanner(btAdapter!!).scanForDevices(timeout) {
             if (it.name != null) {
                 addDevice(it)

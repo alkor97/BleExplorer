@@ -11,3 +11,14 @@ data class Timeout(
 
     fun to(targetUnit: TimeUnit) = Timeout(targetUnit.convert(value, unit))
 }
+
+val TimeUnit.humanReadable: String
+    get() = when (this) {
+        TimeUnit.NANOSECONDS -> "ns"
+        TimeUnit.MICROSECONDS -> "us"
+        TimeUnit.MILLISECONDS -> "ms"
+        TimeUnit.SECONDS -> "s"
+        TimeUnit.MINUTES -> "min"
+        TimeUnit.HOURS -> "h"
+        TimeUnit.DAYS -> "d"
+    }
