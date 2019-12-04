@@ -18,8 +18,6 @@ import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import kotlinx.android.synthetic.main.activity_main.*
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.launch
 
 class MainActivity : AppCompatActivity() {
 
@@ -73,11 +71,18 @@ class MainActivity : AppCompatActivity() {
         appContext.getDevicesModel().observe(this, observer)
 
         val deviceScanButton = device_search_button
+        deviceScanButton.show()
+
+        val deviceScanStopButton = device_stop_search_button
+        deviceScanStopButton.hide()
+
         appContext.isScanningInProgress().observe(this, Observer<Boolean> {
             if (it) {
                 deviceScanButton.hide()
+                deviceScanStopButton.show()
             } else {
                 deviceScanButton.show()
+                deviceScanStopButton.hide()
             }
         })
     }
@@ -139,7 +144,11 @@ class MainActivity : AppCompatActivity() {
         super.onActivityResult(requestCode, resultCode, data)
     }
 
-    fun searchButtonClicked(view: View) {
+    fun searchButtonClicked(@Suppress("UNUSED_PARAMETER") view: View) {
         appContext.scanForDevices()
+    }
+
+    fun stopButtonClicked(@Suppress("UNUSED_PARAMETER") view: View) {
+        appContext.stopScanning()
     }
 }

@@ -30,11 +30,19 @@ class BtLeApplication : Application() {
     fun getDevicesModel() = devicesModel.live()
     private val devices = mutableListOf<BluetoothDevice>()
 
+    private fun setScanningInProgress() = scanningInProgress.update { it.compareAndSet(false, true) }
+    private fun resetScanningInProgress() = scanningInProgress.update {
+        it.set(false)
+        true
+    }
+
+    private var scanner: BtLeDevicesScanner? = null
+
     fun scanForDevices(): Boolean {
         val scanTimeout = DEFAULT_SCAN_TIMEOUT
-        val readTimeout = DEFAULT_BATTERY_READ_TIMEOUT
+        //val readTimeout = DEFAULT_BATTERY_READ_TIMEOUT
 
-        if (scanningInProgress.update { it.compareAndSet(false, true) }) {
+        if (setScanningInProgress()) {
             devices.clear()
             devicesModel.update {
                 it.clear()
@@ -46,7 +54,7 @@ class BtLeApplication : Application() {
                     scanForDevices(scanTimeout)
                     showToast("Scanning completed with %d devices".format(devices.size))
 
-                    devices.forEachIndexed { index, device ->
+                    /*devices.forEachIndexed { index, device ->
                         val (batteryLevel, error) = readBatteryLevel(device, readTimeout) {
                             val msg = it
                             devicesModel.update { devicesModel ->
@@ -84,12 +92,9 @@ class BtLeApplication : Application() {
                             )
                             true
                         }
-                    }
+                    }*/
 
-                    scanningInProgress.update {
-                        it.set(false)
-                        true
-                    }
+                    resetScanningInProgress()
                 } catch (e: Throwable) {
                     Log.e("BtCoroutine", "exception while processing", e)
                 }
@@ -100,13 +105,26 @@ class BtLeApplication : Application() {
     }
 
     private fun scanForDevices(timeout: Timeout) {
-        BtLeDevicesScanner(btAdapter!!).scanForDevices(timeout) {
-            if (it.name != null) {
-                addDevice(it)
+        if (scanner == null) {
+            try {
+                scanner = BtLeDevicesScanner(btAdapter!!)
+                scanner?.let {scanner ->
+                    scanner.scanForDevices(timeout) {device ->
+                        if (device.name != null) {
+                            addDevice(device)
+                        }
+                    }?.apply {
+                        showToast("Scanning failed due to %s".format(this))
+                    }
+                }
+            } finally {
+                scanner = null
             }
-        }?.apply {
-            showToast("Scanning failed due to %s".format(this))
         }
+    }
+
+    fun stopScanning() {
+        scanner?.stopScanning("stopped by user")
     }
 
     private fun addDevice(device: BluetoothDevice) {

@@ -19,6 +19,18 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:srcCompat="@android:drawable/ic_menu_search" />
 
+    <com.google.android.material.floatingactionbutton.FloatingActionButton
+        android:id="@+id/device_stop_search_button"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_margin="10dp"
+        android:clickable="true"
+        android:focusable="true"
+        android:onClick="stopButtonClicked"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:srcCompat="@android:drawable/ic_menu_close_clear_cancel" />
+
     <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/rv_device_list"
             android:layout_width="match_parent"

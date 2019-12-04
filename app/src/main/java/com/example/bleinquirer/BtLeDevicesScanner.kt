@@ -3,14 +3,9 @@ package com.example.bleinquirer
 import android.bluetooth.BluetoothAdapter
 import android.bluetooth.BluetoothDevice
 import android.bluetooth.le.ScanCallback
-import android.bluetooth.le.ScanFilter
 import android.bluetooth.le.ScanResult
 import android.bluetooth.le.ScanSettings
-import android.os.ParcelUuid
 import android.util.Log
-import androidx.annotation.WorkerThread
-import kotlinx.coroutines.delay
-import java.util.concurrent.TimeUnit
 import java.util.concurrent.locks.ReentrantLock
 import kotlin.concurrent.withLock
 
@@ -25,12 +20,27 @@ class BtLeDevicesScanner(private val adapter: BluetoothAdapter) {
         else -> "unknown"
     }, value)
 
+    private val lock = ReentrantLock()
+    private val scanningCompleted = lock.newCondition()
+    private var error: String? = null
+
+    fun stopScanning(error: String? = null) {
+        lock.withLock {
+            this.error = error
+            scanningCompleted.signal()
+        }
+    }
+
+    private fun awaitScanningCompletion(timeout: Timeout) {
+        lock.withLock {
+            scanningCompleted.await(timeout.value, timeout.unit)
+        }
+    }
+
+    private fun getError(): String? = lock.withLock { return this.error }
+
     fun scanForDevices(timeout: Timeout, onDeviceFound: (BluetoothDevice) -> Unit): String? {
         Log.d(tag, "starting device scan")
-        var error: String? = null
-
-        val lock = ReentrantLock()
-        val condition = lock.newCondition()
 
         val uniqueAddresses = hashSetOf<String>()
 
@@ -42,10 +52,7 @@ class BtLeDevicesScanner(private val adapter: BluetoothAdapter) {
             }
             override fun onScanFailed(errorCode: Int) {
                 Log.e(tag, "scan failed with %s".format(scanErrorCode(errorCode)))
-                error = scanErrorCode(errorCode)
-                lock.withLock {
-                    condition.signal()
-                }
+                stopScanning(scanErrorCode(errorCode))
             }
             override fun onBatchScanResults(results: MutableList<ScanResult>?) {
                 results?.apply {
@@ -73,15 +80,13 @@ class BtLeDevicesScanner(private val adapter: BluetoothAdapter) {
             adapter.bluetoothLeScanner.startScan(null, scanSettings, callback)
             Log.d(tag, "device scan started with %s timeout".format(timeout.humanReadable))
 
-            lock.withLock {
-                condition.await(timeout.value, timeout.unit)
-            }
+            awaitScanningCompletion(timeout)
         } finally {
             adapter.bluetoothLeScanner.stopScan(callback)
-            Log.d(tag, "device scan completed")
+            val error = getError()
+            Log.d(tag, "device scan completed with status %s".format(error ?: "success"))
+            return error
         }
-
-        return error
     }
 }
 
