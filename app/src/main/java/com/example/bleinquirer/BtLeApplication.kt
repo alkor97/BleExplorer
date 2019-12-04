@@ -8,7 +8,6 @@ import android.content.Context
 import android.util.Log
 import android.widget.Toast
 import androidx.lifecycle.LiveData
-import com.example.bleinquirer.handler.BluetoothReader
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
@@ -131,10 +130,6 @@ class BtLeApplication : Application() {
         }
     }
 
-    /*private fun readBatteryLevel(device: BluetoothDevice, timeout: Timeout, reporter: (String) -> Unit)
-            = BtBatteryLevelReader(applicationContext, fun (action, result, reason) {
-        reporter("$action $result $reason")
-    }).readBatteryLevel(device, timeout.value, timeout.unit)*/
     private fun readBatteryLevel(
         device: BluetoothDevice,
         timeout: Timeout,

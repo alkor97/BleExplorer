@@ -133,36 +133,10 @@ class MainActivity : AppCompatActivity() {
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
-        if (requestCode == REQUEST_ENABLE_BT && resultCode == Activity.RESULT_OK) {
-            scanForDevices()
-        } else {
+        if (requestCode == REQUEST_ENABLE_BT && resultCode != Activity.RESULT_OK) {
             Log.i("ble", "user rejected request of enabling Bluetooth")
         }
-    }
-
-    private fun scanForDevices() {
-        Log.d("ble", "Devices scanning requested")
-        bluetoothAdapter?.apply {
-            val adapter = this
-            GlobalScope.launch {
-                val scanner = BtLeDevicesScanner(adapter)
-                val devices = scanner.scanForDevices(30)
-                for (device in devices) {
-                    if (device.name != null && !device.name.isBlank()) {
-                        val batteryLevelReader = BtBatteryLevelReader(this@MainActivity) {action, result, message ->
-
-                        }
-                        val batteryLevel = batteryLevelReader.readBatteryLevel(device, 30)
-                        if (batteryLevel != null) {
-                            Log.i(device.description, "batteryLevel = %d%%".format(batteryLevel))
-                        } else {
-                            Log.e(device.description, "Failed to obtain battery level")
-                        }
-                    }
-                }
-                Log.i("ble", "Battery level query completed for all devices")
-            }
-        }
+        super.onActivityResult(requestCode, resultCode, data)
     }
 
     fun searchButtonClicked(view: View) {

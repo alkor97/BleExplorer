@@ -25,7 +25,7 @@ class BtLeDevicesScanner(private val adapter: BluetoothAdapter) {
         else -> "unknown"
     }, value)
 
-    suspend fun scanForDevices(timeout: Timeout, onDeviceFound: (BluetoothDevice) -> Unit): String? {
+    fun scanForDevices(timeout: Timeout, onDeviceFound: (BluetoothDevice) -> Unit): String? {
         Log.d(tag, "starting device scan")
         var error: String? = null
 

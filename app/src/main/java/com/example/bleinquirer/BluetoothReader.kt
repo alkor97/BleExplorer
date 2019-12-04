@@ -1,4 +1,4 @@
-package com.example.bleinquirer.handler
+package com.example.bleinquirer
 
 import android.bluetooth.BluetoothDevice
 import android.bluetooth.BluetoothGatt
@@ -8,9 +8,10 @@ import android.content.Context
 import android.util.Log
 import com.bluetooth.tools.Characteristic
 import com.bluetooth.tools.Service
-import com.example.bleinquirer.BleGatt
-import com.example.bleinquirer.Timeout
-import com.example.bleinquirer.description
+import com.example.bleinquirer.handler.Error
+import com.example.bleinquirer.handler.NotConnected
+import com.example.bleinquirer.handler.Success
+import com.example.bleinquirer.handler.TemplateHandler
 import java.util.*
 import java.util.concurrent.TimeUnit
 
@@ -54,7 +55,11 @@ class BluetoothReader(private val context: Context, private val device: Bluetoot
                 this@BluetoothReader.gatt = gatt
                 responder.handleServicesDiscovered()
             } else {
-                responder.handleServicesDiscoveryError(Error(BleGatt.statusToString(status)))
+                responder.handleServicesDiscoveryError(
+                    Error(
+                        BleGatt.statusToString(status)
+                    )
+                )
             }
         }
 
@@ -71,14 +76,20 @@ class BluetoothReader(private val context: Context, private val device: Bluetoot
                 this@BluetoothReader.characteristic = characteristic
                 responder.handleReadingSuccess()
             } else {
-                responder.handleReadingError(Error(BleGatt.statusToString(status)))
+                responder.handleReadingError(
+                    Error(
+                        BleGatt.statusToString(status)
+                    )
+                )
             }
         }
     }
 
     private fun connect(timeout: Timeout) = requester.handleConnectionRequest(timeout) {
         gatt = device.connectGatt(context, true, callback, BluetoothDevice.TRANSPORT_LE)
-        return@handleConnectionRequest if (gatt != null) Success else Error("Connection failed")
+        return@handleConnectionRequest if (gatt != null) Success else Error(
+            "Connection failed"
+        )
     }
 
     private fun disconnect(timeout: Timeout) = requester.handleDisconnectionRequest(timeout) {
@@ -90,7 +101,9 @@ class BluetoothReader(private val context: Context, private val device: Bluetoot
 
     private fun discover(timeout: Timeout) = requester.handleDiscoveryRequest(timeout) {
         gatt?.let {
-            return@handleDiscoveryRequest if (it.discoverServices()) Success else Error("Discovery failed")
+            return@handleDiscoveryRequest if (it.discoverServices()) Success else Error(
+                "Discovery failed"
+            )
         } ?: return@handleDiscoveryRequest NotConnected
     }
 
@@ -100,18 +113,24 @@ class BluetoothReader(private val context: Context, private val device: Bluetoot
                 val service = it.getService(serviceId)
                 if (service == null) {
                     val name = Service.getFullName(serviceId)
-                    return@handleReadRequest Error("Service $name not available")
+                    return@handleReadRequest Error(
+                        "Service $name not available"
+                    )
                 }
 
                 val characteristic = service.getCharacteristic(characteristicId)
                 if (characteristic == null) {
                     val name = Characteristic.getFullName(characteristicId)
-                    return@handleReadRequest Error("Characteristic $name not available")
+                    return@handleReadRequest Error(
+                        "Characteristic $name not available"
+                    )
                 }
 
                 if (!it.readCharacteristic(characteristic)) {
                     val name = Characteristic.getFullName(characteristicId)
-                    return@handleReadRequest Error("Cannot read $name characteristic")
+                    return@handleReadRequest Error(
+                        "Cannot read $name characteristic"
+                    )
                 }
 
                 return@handleReadRequest Success
@@ -134,7 +153,8 @@ class BluetoothReader(private val context: Context, private val device: Bluetoot
     }
 
     fun readBatteryLevel(timeout: Timeout, report: (String) -> Unit): Pair<Int?, String> {
-        val stopWatch = StopWatch(timeout)
+        val stopWatch =
+            StopWatch(timeout)
 
         Log.d(tag(device), "trying to connect")
         var result = connect(stopWatch.remaining)
@@ -153,7 +173,11 @@ class BluetoothReader(private val context: Context, private val device: Bluetoot
                 return Pair(null, result.toString())
             }
 
-            result = read(Service.BATTERY_SERVICE.uuid, Characteristic.BATTERY_LEVEL.uuid, stopWatch.remaining)
+            result = read(
+                Service.BATTERY_SERVICE.uuid,
+                Characteristic.BATTERY_LEVEL.uuid,
+                stopWatch.remaining
+            )
             Log.d(tag(device), "trying to read")
             report("read $result")
             if (result !is Success) {
