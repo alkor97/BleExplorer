@@ -6,7 +6,6 @@ import android.util.Log
 import android.view.View
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.Observer
-import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import info.alkor.bleinquirer.BtLeApplication
@@ -36,61 +35,20 @@ class MainActivity : AppCompatActivity() {
         setContentView(R.layout.activity_main)
 
         ensureDependenciesAvailability()
+        configureDevicesList()
+        configureScanningButtons()
+    }
 
+    private fun configureDevicesList() {
         val rv = rv_device_list as RecyclerView
         rv.layoutManager = LinearLayoutManager(this, RecyclerView.VERTICAL, false)
 
         val adapter = BtLeDevicesAdapter(this)
         rv.adapter = adapter
 
-        val observer =
-            DevicesObserver(adapter)
+        val observer = BtLeDevicesObserver(adapter)
         observer.onChanged(appContext.getDevicesModel().value ?: listOf())
         appContext.getDevicesModel().observe(this, observer)
-
-        val deviceScanButton = device_search_button
-        deviceScanButton.show()
-
-        val deviceScanStopButton = device_stop_search_button
-        deviceScanStopButton.hide()
-
-        appContext.isScanningInProgress().observe(this, Observer<Boolean> {
-            if (it) {
-                deviceScanButton.hide()
-                deviceScanStopButton.show()
-            } else {
-                deviceScanButton.show()
-                deviceScanStopButton.hide()
-            }
-        })
-    }
-
-    private class DevicesObserver(val adapter: BtLeDevicesAdapter) :
-        Observer<List<BtLeDeviceModel>> {
-        override fun onChanged(newItems: List<BtLeDeviceModel>) {
-            val oldItems = adapter.getItems()
-            val result = DiffUtil.calculateDiff(
-                DevicesDiffCallback(
-                    oldItems,
-                    newItems
-                )
-            )
-            adapter.replaceItems(newItems)
-            result.dispatchUpdatesTo(adapter)
-        }
-    }
-
-    private class DevicesDiffCallback(
-        val oldList: List<BtLeDeviceModel>,
-        val newList: List<BtLeDeviceModel>
-    ) : DiffUtil.Callback() {
-        override fun areItemsTheSame(oldItemPosition: Int, newItemPosition: Int): Boolean =
-            areContentsTheSame(oldItemPosition, newItemPosition)
-
-        override fun getOldListSize(): Int = oldList.size
-        override fun getNewListSize(): Int = newList.size
-        override fun areContentsTheSame(oldItemPosition: Int, newItemPosition: Int): Boolean =
-            oldList[oldItemPosition] == newList[newItemPosition]
     }
 
     private fun ensureDependenciesAvailability() {
@@ -120,6 +78,24 @@ class MainActivity : AppCompatActivity() {
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         bluetoothEnabler.onActivityResult(requestCode, resultCode, data)
         super.onActivityResult(requestCode, resultCode, data)
+    }
+
+    private fun configureScanningButtons() {
+        val deviceScanButton = device_search_button
+        deviceScanButton.show()
+
+        val deviceScanStopButton = device_stop_search_button
+        deviceScanStopButton.hide()
+
+        appContext.isScanningInProgress().observe(this, Observer<Boolean> {
+            if (it) {
+                deviceScanButton.hide()
+                deviceScanStopButton.show()
+            } else {
+                deviceScanButton.show()
+                deviceScanStopButton.hide()
+            }
+        })
     }
 
     fun searchButtonClicked(@Suppress("UNUSED_PARAMETER") view: View) {
