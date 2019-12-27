@@ -24,7 +24,7 @@ class Generator {
         definedClass = model._class(className, ClassType.ENUM);
     }
 
-    void addMapping(String name, String shortUuid) {
+    void addMapping(String name, String shortUuid, String summary) {
         final String baseName = name.toUpperCase().replaceAll("[\\s-()]+", "_");
         String constantName = baseName;
 
@@ -35,7 +35,9 @@ class Generator {
 
         final JEnumConstant constant = definedClass.enumConstant(constantName);
         constant.arg(JExpr.lit(name)).arg(JExpr.lit(shortUuid));
-
+        if (summary != null && summary.length() > 0) {
+            constant.javadoc().append(summary);
+        }
         uniqueConstants.add(constantName);
     }
 

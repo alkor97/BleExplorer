@@ -1,6 +1,7 @@
 package info.alkor.plugins.bluetooth.idgen;
 
 import com.bluetooth.Characteristic;
+import com.bluetooth.InformativeText;
 import com.sun.codemodel.JClassAlreadyExistsException;
 
 import javax.inject.Inject;
@@ -22,5 +23,12 @@ public class CharacteristicsIdGenTask extends AbstractIdGenTask<Characteristic> 
     @Override
     protected String getUuid(Characteristic instance) {
         return instance != null ? instance.getUuid() : null;
+    }
+
+    protected String getAbstract(Characteristic instance) {
+        if (instance.getInformativeText() != null && instance.getInformativeText().getSummary() != null) {
+            return instance.getInformativeText().getSummary();
+        }
+        return null;
     }
 }

@@ -16,7 +16,7 @@ public class GeneratorTest {
 
         Generator generator = new Generator(output);
         generator.beginEnum("com.bluetooth.Services");
-        generator.addMapping("Battery Service", "180F");
+        generator.addMapping("Battery Service", "180F", "some description");
 
         if (!output.exists()) {
             assertTrue(output.mkdirs());
