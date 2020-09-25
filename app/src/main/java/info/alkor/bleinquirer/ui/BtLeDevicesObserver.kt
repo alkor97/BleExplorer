@@ -22,7 +22,7 @@ class BtLeDevicesObserver(val adapter: BtLeDevicesAdapter) :
         val newList: List<BtLeDeviceModel>
     ) : DiffUtil.Callback() {
         override fun areItemsTheSame(oldItemPosition: Int, newItemPosition: Int): Boolean =
-            areContentsTheSame(oldItemPosition, newItemPosition)
+            oldList[oldItemPosition].address == newList[newItemPosition].address
 
         override fun getOldListSize(): Int = oldList.size
         override fun getNewListSize(): Int = newList.size

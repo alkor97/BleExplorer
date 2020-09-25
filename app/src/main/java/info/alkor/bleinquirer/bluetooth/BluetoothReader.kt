@@ -206,3 +206,6 @@ class BluetoothReader(private val context: Context, private val device: Bluetoot
         }
     }
 }
+
+val BluetoothDevice.description: String
+    get() = if (name != null && !name.isBlank()) "%s (%s)".format(address, name) else address

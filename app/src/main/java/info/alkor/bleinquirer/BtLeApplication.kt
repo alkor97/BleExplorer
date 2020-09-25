@@ -10,6 +10,7 @@ import android.widget.Toast
 import androidx.lifecycle.LiveData
 import info.alkor.bleinquirer.bluetooth.BluetoothReader
 import info.alkor.bleinquirer.bluetooth.BtLeDevicesScanner
+import info.alkor.bleinquirer.bluetooth.BtLeScanner
 import info.alkor.bleinquirer.ui.BtLeDeviceModel
 import info.alkor.bleinquirer.utils.LiveObject
 import info.alkor.bleinquirer.utils.Timeout
@@ -47,9 +48,7 @@ class BtLeApplication : Application() {
     private var scanner: BtLeDevicesScanner? = null
 
     fun scanForDevices(): Boolean {
-        val scanTimeout =
-            DEFAULT_SCAN_TIMEOUT
-        //val readTimeout = DEFAULT_BATTERY_READ_TIMEOUT
+        val scanTimeout = DEFAULT_SCAN_TIMEOUT
 
         if (setScanningInProgress()) {
             devices.clear()
@@ -117,11 +116,15 @@ class BtLeApplication : Application() {
         if (scanner == null) {
             try {
                 scanner =
-                    BtLeDevicesScanner(btAdapter!!)
-                scanner?.let {scanner ->
-                    scanner.scanForDevices(timeout) {device ->
+                    BtLeDevicesScanner(BtLeScanner(btAdapter!!))
+                scanner?.let {
+                    val addresses = hashSetOf<String>()
+                    it.scanForDevices(timeout) { device ->
                         if (device.name != null) {
-                            addDevice(device)
+                            if (!addresses.contains(device.address)) {
+                                addDevice(device)
+                                addresses.add(device.address)
+                            }
                         }
                     }?.apply {
                         showToast("Scanning failed due to %s".format(this))
