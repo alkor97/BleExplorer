@@ -15,7 +15,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:padding="10dp"
+            android:padding="5dp"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent">
 
@@ -36,7 +36,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:padding="10dp"
+            android:padding="5dp"
             app:layout_constraintStart_toEndOf="@id/device_address_column"
             app:layout_constraintTop_toTopOf="parent">
 
@@ -53,13 +53,76 @@
         </LinearLayout>
 
         <LinearLayout
+            android:id="@+id/device_date_column"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="5dp"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="parent">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="last update"
+                android:textSize="8sp" />
+
+            <TextView
+                android:id="@+id/device_date"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/device_temperature_column"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="5dp"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/device_address_column">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="temperature"
+                android:textSize="8sp" />
+
+            <TextView
+                android:id="@+id/device_temperature"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/device_humidity_column"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="5dp"
+            app:layout_constraintStart_toEndOf="@+id/device_temperature_column"
+            app:layout_constraintTop_toTopOf="@+id/device_temperature_column">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="humidity"
+                android:textSize="8sp" />
+
+            <TextView
+                android:id="@+id/device_humidity"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content" />
+        </LinearLayout>
+
+        <LinearLayout
             android:id="@+id/device_battery_level_column"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:padding="10dp"
-            app:layout_constraintStart_toEndOf="@id/device_name_column"
-            app:layout_constraintTop_toTopOf="parent">
+            android:padding="5dp"
+            app:layout_constraintStart_toEndOf="@id/device_humidity_column"
+            app:layout_constraintTop_toTopOf="@id/device_humidity_column">
 
             <TextView
                 android:layout_width="wrap_content"
@@ -78,9 +141,9 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:padding="10dp"
+            android:padding="5dp"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/device_address_column">
+            app:layout_constraintTop_toBottomOf="@+id/device_temperature_column">
 
             <TextView
                 android:layout_width="wrap_content"

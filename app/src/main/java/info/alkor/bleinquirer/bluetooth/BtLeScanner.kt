@@ -63,7 +63,6 @@ class BtLeScanner(private val adapter: BluetoothAdapter) {
             }
 
             private fun handleScanResult(result: ScanResult) {
-                Log.d(tag, "%s device found".format(result.device.description))
                 handleResult(result)
             }
         }

@@ -4,19 +4,25 @@ import android.app.Application
 import android.bluetooth.BluetoothAdapter
 import android.bluetooth.BluetoothDevice
 import android.bluetooth.BluetoothManager
+import android.bluetooth.le.ScanResult
 import android.content.Context
 import android.util.Log
 import android.widget.Toast
 import androidx.lifecycle.LiveData
+import com.bluetooth.tools.Characteristic
+import com.bluetooth.tools.Service
 import info.alkor.bleinquirer.bluetooth.BluetoothReader
-import info.alkor.bleinquirer.bluetooth.BtLeDevicesScanner
 import info.alkor.bleinquirer.bluetooth.BtLeScanner
+import info.alkor.bleinquirer.bluetooth.description
+import info.alkor.bleinquirer.bluetooth.specific.XiaomiMijiaHtSensor
+import info.alkor.bleinquirer.bluetooth.specific.toHexString
 import info.alkor.bleinquirer.ui.BtLeDeviceModel
 import info.alkor.bleinquirer.utils.LiveObject
 import info.alkor.bleinquirer.utils.Timeout
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
+import java.util.*
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicBoolean
 
@@ -32,12 +38,9 @@ class BtLeApplication : Application() {
     fun isScanningInProgress(): LiveData<Boolean> = scanningInProgress.live()
 
     private val devicesModel =
-        LiveObject<List<BtLeDeviceModel>, MutableList<BtLeDeviceModel>>(
-            mutableListOf()
-        )
+        LiveObject<List<BtLeDeviceModel>, MutableList<BtLeDeviceModel>>(mutableListOf())
 
     fun getDevicesModel() = devicesModel.live()
-    private val devices = mutableListOf<BluetoothDevice>()
 
     private fun setScanningInProgress() = scanningInProgress.update { it.compareAndSet(false, true) }
     private fun resetScanningInProgress() = scanningInProgress.update {
@@ -45,63 +48,16 @@ class BtLeApplication : Application() {
         true
     }
 
-    private var scanner: BtLeDevicesScanner? = null
+    private var scanner: BtLeScanner? = null
 
     fun scanForDevices(): Boolean {
         val scanTimeout = DEFAULT_SCAN_TIMEOUT
 
         if (setScanningInProgress()) {
-            devices.clear()
-            devicesModel.update {
-                it.clear()
-                true
-            }
-
             GlobalScope.launch {
                 try {
                     scanForDevices(scanTimeout)
-                    showToast("Scanning completed with %d devices".format(devices.size))
-
-                    /*devices.forEachIndexed { index, device ->
-                        val (batteryLevel, error) = readBatteryLevel(device, readTimeout) {
-                            val msg = it
-                            devicesModel.update { devicesModel ->
-                                devicesModel[index] = BtLeDeviceModel(
-                                    device.address,
-                                    device.name,
-                                    devicesModel[index].batteryLevel,
-                                    (devicesModel[index].error ?: "") + "\n$msg"
-                                )
-                                true
-                            }
-                        }
-                        if (batteryLevel != null) {
-                            showToast(
-                                "Battery level of %s is %d%%".format(
-                                    device.description,
-                                    batteryLevel
-                                )
-                            )
-                        } else {
-                            showToast(
-                                "Battery level of %s is unknown due to %s".format(
-                                    device.description,
-                                    error
-                                )
-                            )
-                        }
-
-                        devicesModel.update {
-                            it[index] = BtLeDeviceModel(
-                                device.address,
-                                device.name,
-                                batteryLevel,
-                                it[index].error
-                            )
-                            true
-                        }
-                    }*/
-
+                    showToast("Scanning completed with %d devices".format(devicesModel.live().value?.size))
                     resetScanningInProgress()
                 } catch (e: Throwable) {
                     Log.e("BtCoroutine", "exception while processing", e)
@@ -115,16 +71,12 @@ class BtLeApplication : Application() {
     private fun scanForDevices(timeout: Timeout) {
         if (scanner == null) {
             try {
-                scanner =
-                    BtLeDevicesScanner(BtLeScanner(btAdapter!!))
+                scanner = BtLeScanner(btAdapter!!)
                 scanner?.let {
-                    val addresses = hashSetOf<String>()
-                    it.scanForDevices(timeout) { device ->
+                    it.scan(timeout) { result ->
+                        val device = result.device
                         if (device.name != null) {
-                            if (!addresses.contains(device.address)) {
-                                addDevice(device)
-                                addresses.add(device.address)
-                            }
+                            addOrUpdateDevice(result)
                         }
                     }?.apply {
                         showToast("Scanning failed due to %s".format(this))
@@ -140,17 +92,50 @@ class BtLeApplication : Application() {
         scanner?.stopScanning("stopped by user")
     }
 
-    private fun addDevice(device: BluetoothDevice) {
-        devices.add(device)
-        devicesModel.update {
-            it.add(
-                BtLeDeviceModel(
-                    device.address,
-                    device.name,
-                    null,
-                    null
+    private fun addOrUpdateDevice(result: ScanResult) {
+        val date = Date()
+        val device = result.device
+        val sensor =
+            result.scanRecord?.serviceData?.filter { Characteristic.MI_SERVICE.uuid == it.key.uuid }
+                ?.map { XiaomiMijiaHtSensor(it.value) }
+                ?.getOrNull(0)
+        result.scanRecord?.serviceData?.onEach {
+            val service = it.key.uuid.getDescription()
+            Log.d(result.device.description, "$service = ${it.value.toHexString()}")
+        }
+        devicesModel.update { list ->
+            var found = false
+            for (i in 0 until list.size) {
+                val model = list[i]
+                if (model.address == device.address) {
+                    if (sensor != null) {
+                        list[i] = BtLeDeviceModel(
+                            model.address,
+                            device.name,
+                            sensor.battery ?: model.batteryLevel,
+                            null,
+                            sensor.temperature ?: model.temperature,
+                            sensor.humidity ?: model.humidity,
+                            date
+                        )
+                    }
+                    found = true
+                    break
+                }
+            }
+            if (!found) {
+                list.add(
+                    BtLeDeviceModel(
+                        device.address,
+                        device.name,
+                        sensor?.battery,
+                        null,
+                        sensor?.temperature,
+                        sensor?.humidity,
+                        date
+                    )
                 )
-            )
+            }
             true
         }
     }
@@ -175,5 +160,14 @@ class BtLeApplication : Application() {
             Timeout(30, TimeUnit.SECONDS)
         val DEFAULT_BATTERY_READ_TIMEOUT =
             Timeout(30, TimeUnit.SECONDS)
+    }
+}
+
+fun UUID.getDescription(): String {
+    val service = Service.fromUuid(this)
+    if (service != null) {
+        return service.fullName
+    } else {
+        return Characteristic.getFullName(this)
     }
 }
