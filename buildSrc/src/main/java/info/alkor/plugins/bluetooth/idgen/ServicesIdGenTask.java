@@ -1,5 +1,6 @@
 package info.alkor.plugins.bluetooth.idgen;
 
+import com.bluetooth.InformativeText;
 import com.bluetooth.Service;
 import com.sun.codemodel.JClassAlreadyExistsException;
 
@@ -22,5 +23,19 @@ public class ServicesIdGenTask extends AbstractIdGenTask<Service> {
     @Override
     protected String getUuid(Service instance) {
         return instance != null ? instance.getUuid() : null;
+    }
+
+    protected String getAbstract(Service instance) {
+        final StringBuilder sb = new StringBuilder();
+
+        for (InformativeText text : instance.getInformativeText()) {
+            if (text != null && text.getSummary() != null) {
+                if (sb.length() > 0) {
+                    sb.append("<p>");
+                }
+                sb.append(text.getSummary());
+            }
+        }
+        return sb.toString();
     }
 }

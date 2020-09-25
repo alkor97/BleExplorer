@@ -46,7 +46,7 @@ abstract class AbstractIdGenTask<E> extends DefaultTask {
     private void processFile(File f) throws IOException, JAXBException {
         try (InputStream stream = new BufferedInputStream(new FileInputStream(f))) {
             final E instance = parse(stream, clazz);
-            generator.addMapping(getName(instance), getUuid(instance));
+            generator.addMapping(getName(instance), getUuid(instance), clean(getAbstract(instance)));
             System.out.printf("\t%s: %s\n", getName(instance), getUuid(instance));
         }
     }
@@ -59,4 +59,14 @@ abstract class AbstractIdGenTask<E> extends DefaultTask {
     protected abstract String getName(E instance);
 
     protected abstract String getUuid(E instance);
+
+    protected abstract String getAbstract(E instance);
+
+    private String clean(String text) {
+        if (text == null) {
+            return null;
+        }
+
+        return text.replaceAll("\\s+", " ").trim();
+    }
 }
