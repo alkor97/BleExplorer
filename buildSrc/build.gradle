@@ -2,11 +2,7 @@ plugins {
     id 'java'
 
     // generate Java code from XSD
-    id 'org.unbroken-dome.xjc' version '1.4.3'
-}
-
-xjc {
-    includeInMainCompilation = false
+    id 'org.unbroken-dome.xjc' version '2.0.0'
 }
 
 xjcGenerate  {
@@ -30,6 +26,7 @@ repositories {
 
 dependencies {
     testImplementation group: 'junit', name: 'junit', version: '4.12'
+    implementation 'javax.xml.bind:jaxb-api:2.3.1'
     implementation group: 'com.sun.istack', name: 'istack-commons-runtime', version: '3.0.10'
     implementation group: 'com.sun.codemodel', name: 'codemodel', version: '2.6'
 }
