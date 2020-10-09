@@ -38,7 +38,14 @@ class BtLeDevicesAdapter(private val context: Context) : RecyclerView.Adapter<Bt
             if (item.batteryLevel != null) "${item.batteryLevel}%" else "-"
         holder.tvDeviceTemperature?.text =
             if (item.temperature != null) "${item.temperature}°C" else "-"
-        holder.tvDeviceHumidity?.text = if (item.humidity != null) "${item.humidity}%" else "-"
+        holder.tvDeviceHumidity?.text =
+            if (item.humidity != null) "${item.humidity}%" else "-"
+        holder.tvDeviceLuminance?.text =
+            if (item.luminance != null) "${item.luminance} lx" else "-"
+        holder.tvDeviceMoisture?.text =
+            if (item.moisture != null) "${item.moisture}%" else "-"
+        holder.tvDeviceFertility?.text =
+            if (item.fertility != null) "${item.fertility} µS/cm" else "-"
         holder.tvDeviceError?.apply {
             if (item.error != null) {
                 text = item.error
@@ -55,7 +62,14 @@ class BtLeDevicesAdapter(private val context: Context) : RecyclerView.Adapter<Bt
             if (item.temperature != null) View.VISIBLE else View.GONE
         holder.vDeviceHumidityColumn?.visibility =
             if (item.humidity != null) View.VISIBLE else View.GONE
-        holder.vDeviceErrorColumn?.visibility = if (item.error != null) View.VISIBLE else View.GONE
+        holder.vDeviceLuminanceColumn?.visibility =
+            if (item.luminance != null) View.VISIBLE else View.GONE
+        holder.vDeviceMoistureColumn?.visibility =
+            if (item.moisture != null) View.VISIBLE else View.GONE
+        holder.vDeviceFertilityColumn?.visibility =
+            if (item.fertility != null) View.VISIBLE else View.GONE
+        holder.vDeviceErrorColumn?.visibility =
+            if (item.error != null) View.VISIBLE else View.GONE
         holder.vDeviceDateColumn?.visibility = View.VISIBLE
     }
 
@@ -67,11 +81,17 @@ class BtLeDevicesAdapter(private val context: Context) : RecyclerView.Adapter<Bt
         val tvDeviceHumidity: TextView? = view.device_humidity
         val tvDeviceError: TextView? = view.device_error
         val tvDeviceDate: TextView? = view.device_date
+        val tvDeviceLuminance: TextView? = view.device_luminance
+        val tvDeviceMoisture: TextView? = view.device_moisture
+        val tvDeviceFertility: TextView? = view.device_fertility
 
         val vDeviceBatterLevelColumn: View? = view.device_battery_level_column
         val vDeviceTemperatureColumn: View? = view.device_temperature_column
         val vDeviceHumidityColumn: View? = view.device_humidity_column
         val vDeviceErrorColumn: View? = view.device_error_column
         val vDeviceDateColumn: View? = view.device_date_column
+        val vDeviceLuminanceColumn: View? = view.device_luminance_column
+        val vDeviceMoistureColumn: View? = view.device_moisture_column
+        val vDeviceFertilityColumn: View? = view.device_fertility_column
     }
 }

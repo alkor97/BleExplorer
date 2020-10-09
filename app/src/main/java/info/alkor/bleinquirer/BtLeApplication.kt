@@ -14,7 +14,7 @@ import com.bluetooth.tools.Service
 import info.alkor.bleinquirer.bluetooth.BluetoothReader
 import info.alkor.bleinquirer.bluetooth.BtLeScanner
 import info.alkor.bleinquirer.bluetooth.description
-import info.alkor.bleinquirer.bluetooth.specific.XiaomiMijiaHtSensor
+import info.alkor.bleinquirer.bluetooth.specific.XiaomiSensor
 import info.alkor.bleinquirer.bluetooth.specific.toHexString
 import info.alkor.bleinquirer.ui.BtLeDeviceModel
 import info.alkor.bleinquirer.utils.LiveObject
@@ -97,7 +97,8 @@ class BtLeApplication : Application() {
         val device = result.device
         val sensor =
             result.scanRecord?.serviceData?.filter { Characteristic.MI_SERVICE.uuid == it.key.uuid }
-                ?.map { XiaomiMijiaHtSensor(it.value) }
+                ?.map { XiaomiSensor.parse(it.value) }
+                ?.onEach { Log.i("xiaomi", device.name + ": " + it.toString()) }
                 ?.getOrNull(0)
         result.scanRecord?.serviceData?.onEach {
             val service = it.key.uuid.getDescription()
@@ -116,6 +117,9 @@ class BtLeApplication : Application() {
                             null,
                             sensor.temperature ?: model.temperature,
                             sensor.humidity ?: model.humidity,
+                            sensor.luminance ?: model.luminance,
+                            sensor.moisture ?: model.moisture,
+                            sensor.fertility ?: model.fertility,
                             date
                         )
                     }
@@ -132,6 +136,9 @@ class BtLeApplication : Application() {
                         null,
                         sensor?.temperature,
                         sensor?.humidity,
+                        sensor?.luminance,
+                        sensor?.moisture,
+                        sensor?.fertility,
                         date
                     )
                 )

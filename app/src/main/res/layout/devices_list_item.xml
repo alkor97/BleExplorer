@@ -137,6 +137,69 @@
         </LinearLayout>
 
         <LinearLayout
+            android:id="@+id/device_luminance_column"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="5dp"
+            app:layout_constraintStart_toEndOf="@id/device_battery_level_column"
+            app:layout_constraintTop_toTopOf="@id/device_battery_level_column">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="luminance"
+                android:textSize="8sp" />
+
+            <TextView
+                android:id="@+id/device_luminance"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/device_moisture_column"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="5dp"
+            app:layout_constraintStart_toEndOf="@id/device_luminance_column"
+            app:layout_constraintTop_toTopOf="@id/device_luminance_column">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="moisture"
+                android:textSize="8sp" />
+
+            <TextView
+                android:id="@+id/device_moisture"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/device_fertility_column"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="5dp"
+            app:layout_constraintStart_toEndOf="@id/device_moisture_column"
+            app:layout_constraintTop_toTopOf="@id/device_moisture_column">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="fertility"
+                android:textSize="8sp" />
+
+            <TextView
+                android:id="@+id/device_fertility"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content" />
+        </LinearLayout>
+
+        <LinearLayout
             android:id="@+id/device_error_column"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"

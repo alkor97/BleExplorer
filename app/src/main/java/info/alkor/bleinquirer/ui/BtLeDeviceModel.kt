@@ -10,6 +10,9 @@ data class BtLeDeviceModel(
 
     val temperature: Double?,
     val humidity: Double?,
+    val luminance: Int?,
+    val moisture: Int?,
+    val fertility: Int?,
 
     val lastUpdate: Date
 )
