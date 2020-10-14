@@ -17,6 +17,7 @@ import info.alkor.bleinquirer.bluetooth.description
 import info.alkor.bleinquirer.bluetooth.specific.XiaomiSensor
 import info.alkor.bleinquirer.bluetooth.specific.toHexString
 import info.alkor.bleinquirer.ui.BtLeDeviceModel
+import info.alkor.bleinquirer.ui.BtNameMapper
 import info.alkor.bleinquirer.utils.LiveObject
 import info.alkor.bleinquirer.utils.Timeout
 import kotlinx.coroutines.Dispatchers
@@ -49,6 +50,7 @@ class BtLeApplication : Application() {
     }
 
     private var scanner: BtLeScanner? = null
+    private val nameMapper: BtNameMapper by lazy { BtNameMapper() }
 
     fun scanForDevices(): Boolean {
         val scanTimeout = DEFAULT_SCAN_TIMEOUT
@@ -112,7 +114,7 @@ class BtLeApplication : Application() {
                     if (sensor != null) {
                         list[i] = BtLeDeviceModel(
                             model.address,
-                            device.name,
+                            getName(device),
                             sensor.battery ?: model.batteryLevel,
                             null,
                             sensor.temperature ?: model.temperature,
@@ -131,7 +133,7 @@ class BtLeApplication : Application() {
                 list.add(
                     BtLeDeviceModel(
                         device.address,
-                        device.name,
+                        getName(device),
                         sensor?.battery,
                         null,
                         sensor?.temperature,
@@ -146,6 +148,8 @@ class BtLeApplication : Application() {
             true
         }
     }
+
+    private fun getName(device: BluetoothDevice) = nameMapper.getName(device)
 
     private fun showToast(text: String) {
         GlobalScope.launch(Dispatchers.Main) {
