@@ -33,12 +33,13 @@
 
         <LinearLayout
             android:id="@+id/device_name_column"
-            android:layout_width="wrap_content"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:orientation="vertical"
             android:padding="5dp"
             app:layout_constraintStart_toEndOf="@id/device_address_column"
-            app:layout_constraintTop_toTopOf="parent">
+            app:layout_constraintEnd_toStartOf="@id/device_date_column"
+            app:layout_constraintTop_toTopOf="@id/device_address_column">
 
             <TextView
                 android:layout_width="wrap_content"
