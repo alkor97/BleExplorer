@@ -1,3 +1,15 @@
 <resources>
     <string name="app_name">BLE Explorer</string>
+    <string name="address">address</string>
+    <string name="name">name</string>
+    <string name="last_update">last update</string>
+    <string name="temperature">temperature</string>
+    <string name="humidity">humidity</string>
+    <string name="battery">battery</string>
+    <string name="luminance">luminance</string>
+    <string name="moisture">moisture</string>
+    <string name="fertility">fertility</string>
+    <string name="status">status</string>
+    <string name="save">Save</string>
+    <string name="cancel">Cancel</string>
 </resources>

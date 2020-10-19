@@ -22,7 +22,7 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="address"
+                android:text="@string/address"
                 android:textSize="8sp" />
 
             <TextView
@@ -44,7 +44,7 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="name"
+                android:text="@string/name"
                 android:textSize="8sp" />
 
             <TextView
@@ -65,7 +65,7 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="last update"
+                android:text="@string/last_update"
                 android:textSize="8sp" />
 
             <TextView
@@ -86,7 +86,7 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="temperature"
+                android:text="@string/temperature"
                 android:textSize="8sp" />
 
             <TextView
@@ -107,7 +107,7 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="humidity"
+                android:text="@string/humidity"
                 android:textSize="8sp" />
 
             <TextView
@@ -128,7 +128,7 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="battery level"
+                android:text="@string/battery"
                 android:textSize="8sp" />
 
             <TextView
@@ -149,7 +149,7 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="luminance"
+                android:text="@string/luminance"
                 android:textSize="8sp" />
 
             <TextView
@@ -170,7 +170,7 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="moisture"
+                android:text="@string/moisture"
                 android:textSize="8sp" />
 
             <TextView
@@ -191,7 +191,7 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="fertility"
+                android:text="@string/fertility"
                 android:textSize="8sp" />
 
             <TextView
@@ -212,7 +212,7 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="status"
+                android:text="@string/status"
                 android:textSize="8sp" />
 
             <TextView
