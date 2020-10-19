@@ -5,7 +5,7 @@ import java.util.*
 data class BtLeDeviceModel(
     val address: String,
     val name: String?,
-    val batteryLevel: Int?,
+    val battery: Int?,
     val error: String?,
 
     val temperature: Double?,
@@ -14,5 +14,7 @@ data class BtLeDeviceModel(
     val moisture: Int?,
     val fertility: Int?,
 
-    val lastUpdate: Date
+    val lastUpdate: Date,
+
+    val useCustomName: Boolean = false
 )

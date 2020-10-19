@@ -1,6 +1,7 @@
 package info.alkor.bleinquirer.ui
 
 import android.content.Context
+import android.graphics.Typeface
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -33,9 +34,12 @@ class BtLeDevicesAdapter(private val context: Context) : RecyclerView.Adapter<Bt
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
         val item = items[position]
         holder.tvDeviceAddress?.text = item.address
-        holder.tvDeviceName?.text = item.name ?: "-"
+        holder.tvDeviceName?.apply {
+            text = item.name ?: "-"
+            setTypeface(null, if (item.useCustomName) Typeface.BOLD else Typeface.NORMAL)
+        }
         holder.tvDeviceBatteryLevel?.text =
-            if (item.batteryLevel != null) "${item.batteryLevel}%" else "-"
+            if (item.battery != null) "${item.battery}%" else "-"
         holder.tvDeviceTemperature?.text =
             if (item.temperature != null) "${item.temperature}°C" else "-"
         holder.tvDeviceHumidity?.text =
@@ -57,7 +61,7 @@ class BtLeDevicesAdapter(private val context: Context) : RecyclerView.Adapter<Bt
         holder.tvDeviceDate?.text = timeFormatter.format(item.lastUpdate)
 
         holder.vDeviceBatterLevelColumn?.visibility =
-            if (item.batteryLevel != null) View.VISIBLE else View.GONE
+            if (item.battery != null) View.VISIBLE else View.GONE
         holder.vDeviceTemperatureColumn?.visibility =
             if (item.temperature != null) View.VISIBLE else View.GONE
         holder.vDeviceHumidityColumn?.visibility =
@@ -71,9 +75,16 @@ class BtLeDevicesAdapter(private val context: Context) : RecyclerView.Adapter<Bt
         holder.vDeviceErrorColumn?.visibility =
             if (item.error != null) View.VISIBLE else View.GONE
         holder.vDeviceDateColumn?.visibility = View.VISIBLE
+
+        holder.vView.setOnLongClickListener {
+            DeviceEditDialog(context).showDialog(item)
+            return@setOnLongClickListener true
+        }
     }
 
     inner class ViewHolder(view: View) : RecyclerView.ViewHolder(view) {
+        val vView = view
+
         val tvDeviceAddress: TextView? = view.device_address
         val tvDeviceName: TextView? = view.device_name
         val tvDeviceBatteryLevel: TextView? = view.device_battery_level

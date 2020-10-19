@@ -95,7 +95,6 @@ class BtLeApplication : Application() {
     }
 
     private fun addOrUpdateDevice(result: ScanResult) {
-        val date = Date()
         val device = result.device
         val sensor =
             result.scanRecord?.serviceData?.filter { Characteristic.MI_SERVICE.uuid == it.key.uuid }
@@ -106,48 +105,68 @@ class BtLeApplication : Application() {
             val service = it.key.uuid.getDescription()
             Log.d(result.device.description, "$service = ${it.value.toHexString()}")
         }
-        devicesModel.update { list ->
-            var found = false
-            for (i in 0 until list.size) {
-                val model = list[i]
-                if (model.address == device.address) {
-                    if (sensor != null) {
-                        list[i] = BtLeDeviceModel(
-                            model.address,
-                            getName(device),
-                            sensor.battery ?: model.batteryLevel,
-                            null,
-                            sensor.temperature ?: model.temperature,
-                            sensor.humidity ?: model.humidity,
-                            sensor.luminance ?: model.luminance,
-                            sensor.moisture ?: model.moisture,
-                            sensor.fertility ?: model.fertility,
-                            date
-                        )
-                    }
-                    found = true
-                    break
-                }
-            }
-            if (!found) {
-                list.add(
-                    BtLeDeviceModel(
-                        device.address,
-                        getName(device),
-                        sensor?.battery,
-                        null,
-                        sensor?.temperature,
-                        sensor?.humidity,
-                        sensor?.luminance,
-                        sensor?.moisture,
-                        sensor?.fertility,
-                        date
-                    )
-                )
-            }
-            true
+
+        if (!updateModelWith(device, sensor)) {
+            addModel(device, sensor)
         }
     }
+
+    private fun addModel(device: BluetoothDevice, sensor: XiaomiSensor?) {
+        val name = getName(device)
+        devicesModel.update { list ->
+            list.add(
+                BtLeDeviceModel(
+                    device.address,
+                    name,
+                    sensor?.battery,
+                    null,
+                    sensor?.temperature,
+                    sensor?.humidity,
+                    sensor?.luminance,
+                    sensor?.moisture,
+                    sensor?.fertility,
+                    Date(),
+                    useCustomName = name != device.name
+                )
+            )
+        }
+    }
+
+    private fun updateModelWith(device: BluetoothDevice, sensor: XiaomiSensor?) =
+        updateModel(device.address) { original ->
+            val name = getName(device)
+            return@updateModel BtLeDeviceModel(
+                original.address,
+                if (original.useCustomName) original.name else name,
+                sensor?.battery ?: original.battery,
+                null,
+                sensor?.temperature ?: original.temperature,
+                sensor?.humidity ?: original.humidity,
+                sensor?.luminance ?: original.luminance,
+                sensor?.moisture ?: original.moisture,
+                sensor?.fertility ?: original.fertility,
+                Date(),
+                useCustomName = original.useCustomName || name != device.name
+            )
+        }
+
+    fun updateModelWith(updated: BtLeDeviceModel) = updateModel(updated.address) { updated }
+
+    private fun updateModel(address: String, updater: (BtLeDeviceModel) -> BtLeDeviceModel) =
+        devicesModel.update { list ->
+            for (i in 0 until list.size) {
+                val original = list[i]
+                if (original.address == address) {
+                    val updated = updater(original)
+                    if (updated != original) {
+                        list[i] = updated
+                        return@update true
+                    }
+                    return@update false
+                }
+            }
+            false
+        }
 
     private fun getName(device: BluetoothDevice) = nameMapper.getName(device)
 
