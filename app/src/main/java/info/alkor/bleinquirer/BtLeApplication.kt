@@ -16,6 +16,7 @@ import info.alkor.bleinquirer.bluetooth.BtLeScanner
 import info.alkor.bleinquirer.bluetooth.description
 import info.alkor.bleinquirer.bluetooth.specific.XiaomiSensor
 import info.alkor.bleinquirer.bluetooth.specific.toHexString
+import info.alkor.bleinquirer.models.DevicesModel
 import info.alkor.bleinquirer.ui.BtLeDeviceModel
 import info.alkor.bleinquirer.ui.BtNameMapper
 import info.alkor.bleinquirer.utils.LiveObject
@@ -36,14 +37,19 @@ class BtLeApplication : Application() {
 
     private val scanningInProgress =
         LiveObject(AtomicBoolean(false)) { it.get() }
+
     fun isScanningInProgress(): LiveData<Boolean> = scanningInProgress.live()
 
     private val devicesModel =
         LiveObject<List<BtLeDeviceModel>, MutableList<BtLeDeviceModel>>(mutableListOf())
 
-    fun getDevicesModel() = devicesModel.live()
+    private val devices = DevicesModel()
 
-    private fun setScanningInProgress() = scanningInProgress.update { it.compareAndSet(false, true) }
+    fun devices() = devices.devices()
+
+    private fun setScanningInProgress() =
+        scanningInProgress.update { it.compareAndSet(false, true) }
+
     private fun resetScanningInProgress() = scanningInProgress.update {
         it.set(false)
         true
@@ -106,69 +112,12 @@ class BtLeApplication : Application() {
             Log.d(result.device.description, "$service = ${it.value.toHexString()}")
         }
 
-        if (!updateModelWith(device, sensor)) {
-            addModel(device, sensor)
+        if (!devices.updateDevice(device, sensor)) {
+            devices.addDevice(device, sensor)
         }
     }
 
-    private fun addModel(device: BluetoothDevice, sensor: XiaomiSensor?) {
-        val name = getName(device)
-        devicesModel.update { list ->
-            list.add(
-                BtLeDeviceModel(
-                    device.address,
-                    name,
-                    sensor?.battery,
-                    null,
-                    sensor?.temperature,
-                    sensor?.humidity,
-                    sensor?.luminance,
-                    sensor?.moisture,
-                    sensor?.fertility,
-                    Date(),
-                    useCustomName = name != device.name
-                )
-            )
-        }
-    }
-
-    private fun updateModelWith(device: BluetoothDevice, sensor: XiaomiSensor?) =
-        updateModel(device.address) { original ->
-            val name = getName(device)
-            return@updateModel BtLeDeviceModel(
-                original.address,
-                if (original.useCustomName) original.name else name,
-                sensor?.battery ?: original.battery,
-                null,
-                sensor?.temperature ?: original.temperature,
-                sensor?.humidity ?: original.humidity,
-                sensor?.luminance ?: original.luminance,
-                sensor?.moisture ?: original.moisture,
-                sensor?.fertility ?: original.fertility,
-                Date(),
-                useCustomName = original.useCustomName || name != device.name
-            )
-        }
-
-    fun updateModelWith(updated: BtLeDeviceModel) = updateModel(updated.address) { updated }
-
-    private fun updateModel(address: String, updater: (BtLeDeviceModel) -> BtLeDeviceModel) =
-        devicesModel.update { list ->
-            for (i in 0 until list.size) {
-                val original = list[i]
-                if (original.address == address) {
-                    val updated = updater(original)
-                    if (updated != original) {
-                        list[i] = updated
-                        return@update true
-                    }
-                    return@update false
-                }
-            }
-            false
-        }
-
-    private fun getName(device: BluetoothDevice) = nameMapper.getName(device)
+    fun updateDevice(updated: BtLeDeviceModel) = devices.updateDevice(updated)
 
     private fun showToast(text: String) {
         GlobalScope.launch(Dispatchers.Main) {

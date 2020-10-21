@@ -4,17 +4,17 @@ import java.util.*
 
 data class BtLeDeviceModel(
     val address: String,
-    val name: String?,
-    val battery: Int?,
-    val error: String?,
+    val name: String? = null,
+    val battery: Int? = null,
+    val error: String? = null,
 
-    val temperature: Double?,
-    val humidity: Double?,
-    val luminance: Int?,
-    val moisture: Int?,
-    val fertility: Int?,
+    val temperature: Double? = null,
+    val humidity: Double? = null,
+    val luminance: Int? = null,
+    val moisture: Int? = null,
+    val fertility: Int? = null,
 
-    val lastUpdate: Date,
+    val lastUpdate: Date = Date(),
 
     val useCustomName: Boolean = false
 )

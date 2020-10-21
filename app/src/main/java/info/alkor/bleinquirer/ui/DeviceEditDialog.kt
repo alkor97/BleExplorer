@@ -36,7 +36,7 @@ class DeviceEditDialog(ctx: Context) : Dialog(ctx) {
     private fun updateName(newName: String) {
         if (newName != item?.name) {
             val app = context.applicationContext as BtLeApplication
-            app.updateModelWith(
+            app.updateDevice(
                 BtLeDeviceModel(
                     item!!.address,
                     if (newName.isBlank()) item!!.name else newName, // do not allow for empty names

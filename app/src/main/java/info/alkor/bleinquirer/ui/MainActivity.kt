@@ -5,7 +5,6 @@ import android.os.Bundle
 import android.util.Log
 import android.view.View
 import androidx.appcompat.app.AppCompatActivity
-import androidx.lifecycle.Observer
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import info.alkor.bleinquirer.BtLeApplication
@@ -47,8 +46,8 @@ class MainActivity : AppCompatActivity() {
         rv.adapter = adapter
 
         val observer = BtLeDevicesObserver(adapter)
-        observer.onChanged(appContext.getDevicesModel().value ?: listOf())
-        appContext.getDevicesModel().observe(this, observer)
+        observer.onChanged(appContext.devices().value ?: listOf())
+        appContext.devices().observe(this, observer)
     }
 
     private fun ensureDependenciesAvailability() {
@@ -87,7 +86,7 @@ class MainActivity : AppCompatActivity() {
         val deviceScanStopButton = device_stop_search_button
         deviceScanStopButton.hide()
 
-        appContext.isScanningInProgress().observe(this, Observer<Boolean> {
+        appContext.isScanningInProgress().observe(this, {
             if (it) {
                 deviceScanButton.hide()
                 deviceScanStopButton.show()

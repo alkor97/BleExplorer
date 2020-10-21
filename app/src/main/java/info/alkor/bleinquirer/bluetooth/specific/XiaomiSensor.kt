@@ -6,14 +6,14 @@ import java.nio.ByteOrder
 // https://github.com/AlCalzone/ioBroker.ble/blob/master/src/plugins/lib/xiaomi_protocol.ts
 data class XiaomiSensor(
     val header: Header,
-    val address: String?,
-    val capabilities: Capabilities?,
-    val temperature: Double?,
-    val humidity: Double?,
-    val battery: Int?,
-    val luminance: Int?,
-    val moisture: Int?,
-    val fertility: Int?
+    val address: String? = null,
+    val capabilities: Capabilities? = null,
+    val temperature: Double? = null,
+    val humidity: Double? = null,
+    val battery: Int? = null,
+    val luminance: Int? = null,
+    val moisture: Int? = null,
+    val fertility: Int? = null
 ) {
     override fun toString(): String {
         val sb = ArrayList<String>()
