@@ -3,6 +3,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="wrap_content"
     android:layout_height="wrap_content"
+    android:layout_margin="2dp"
     android:orientation="vertical">
 
     <LinearLayout
@@ -40,9 +41,15 @@
             android:id="@+id/device_edit_name"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:inputType="text"
-            android:autofillHints="@string/name"
+            android:autofillHints="@string/device_name"
+            android:inputType="textCapSentences"
             android:singleLine="true" />
+
+        <com.google.android.material.switchmaterial.SwitchMaterial
+            android:id="@+id/device_delete_name"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/delete_custom_name" />
     </LinearLayout>
 
     <androidx.constraintlayout.widget.ConstraintLayout

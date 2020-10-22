@@ -12,4 +12,6 @@
     <string name="status">status</string>
     <string name="save">Save</string>
     <string name="cancel">Cancel</string>
+    <string name="device_name">device name</string>
+    <string name="delete_custom_name">delete custom name</string>
 </resources>

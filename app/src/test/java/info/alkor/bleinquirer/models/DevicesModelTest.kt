@@ -3,7 +3,7 @@ package info.alkor.bleinquirer.models
 import android.bluetooth.BluetoothDevice
 import androidx.arch.core.executor.testing.InstantTaskExecutorRule
 import info.alkor.bleinquirer.bluetooth.specific.XiaomiSensor
-import info.alkor.bleinquirer.persistence.BtNameMapper
+import info.alkor.bleinquirer.persistence.NameMapper
 import info.alkor.bleinquirer.ui.BtLeDeviceModel
 import io.mockk.coEvery
 import io.mockk.every
@@ -18,7 +18,7 @@ class DevicesModelTest {
     @get:Rule
     val rule = InstantTaskExecutorRule()
 
-    private val nameMapper = mockk<BtNameMapper>()
+    private val nameMapper = mockk<NameMapper>()
     private val instance = DevicesModel(nameMapper)
 
     private val address = "12:34:56:78:90:AB"
@@ -158,6 +158,31 @@ class DevicesModelTest {
             // updating device details preserves custom name
             assertEquals(customName, it.name)
             assertTrue(it.useCustomName)
+        }
+    }
+
+    @Test
+    fun `delete custom name with empty value`() {
+        val customName = "custom-name"
+        assertNotEquals(name, customName)
+
+        mockNameMapping(device, customName)
+
+        instance.addDevice(device, null)
+        verifyNonNullDevice {
+            // after adding original name is used
+            assertEquals(customName, it.name)
+            assertTrue(it.useCustomName)
+        }
+
+        // use original name
+        mockNameMapping(device, name)
+        instance.updateDeviceName(address, "")
+
+        instance.updateDevice(device, null)
+        verifyNonNullDevice {
+            assertEquals(name, it.name)
+            assertFalse(it.useCustomName)
         }
     }
 

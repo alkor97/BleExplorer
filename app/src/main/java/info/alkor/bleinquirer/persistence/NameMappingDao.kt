@@ -12,6 +12,13 @@ interface NameMappingDao {
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     fun storeNameMapping(record: NameMapping)
+
+    @Delete
+    fun deleteNameMapping(record: NameMapping)
+
+    fun deleteNameMapping(address: String) {
+        deleteNameMapping(NameMapping(address, ""))
+    }
 }
 
 @Entity(tableName = "name_mapping")

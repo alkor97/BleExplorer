@@ -2,12 +2,12 @@ package info.alkor.bleinquirer.models
 
 import android.bluetooth.BluetoothDevice
 import info.alkor.bleinquirer.bluetooth.specific.XiaomiSensor
-import info.alkor.bleinquirer.persistence.BtNameMapper
+import info.alkor.bleinquirer.persistence.NameMapper
 import info.alkor.bleinquirer.ui.BtLeDeviceModel
 import info.alkor.bleinquirer.utils.LiveObject
 import java.util.*
 
-class DevicesModel(private val nameMapper: BtNameMapper) {
+class DevicesModel(private val nameMapper: NameMapper) {
 
     private val devices =
         LiveObject<List<BtLeDeviceModel>, MutableList<BtLeDeviceModel>>(mutableListOf())
@@ -85,5 +85,5 @@ fun BtLeDeviceModel.withCustomName(newName: String) = BtLeDeviceModel(
     moisture,
     fertility,
     lastUpdate,
-    !newName.isBlank() // mark name as updated only if it is not blank
+    useCustomName = !newName.isBlank() // use custom name only if it is not blank
 )

@@ -17,7 +17,7 @@ import info.alkor.bleinquirer.bluetooth.description
 import info.alkor.bleinquirer.bluetooth.specific.XiaomiSensor
 import info.alkor.bleinquirer.bluetooth.specific.toHexString
 import info.alkor.bleinquirer.models.DevicesModel
-import info.alkor.bleinquirer.persistence.BtNameMapper
+import info.alkor.bleinquirer.persistence.NameMapper
 import info.alkor.bleinquirer.ui.BtLeDeviceModel
 import info.alkor.bleinquirer.utils.LiveObject
 import info.alkor.bleinquirer.utils.Timeout
@@ -52,7 +52,7 @@ class BtLeApplication : Application() {
     }
 
     private var scanner: BtLeScanner? = null
-    private val nameMapper: BtNameMapper by lazy { BtNameMapper(applicationContext) }
+    private val nameMapper: NameMapper by lazy { NameMapper(applicationContext) }
     private val devices: DevicesModel by lazy { DevicesModel(nameMapper) }
 
     fun devices() = devices.devices()
