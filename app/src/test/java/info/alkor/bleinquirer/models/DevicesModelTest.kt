@@ -3,8 +3,9 @@ package info.alkor.bleinquirer.models
 import android.bluetooth.BluetoothDevice
 import androidx.arch.core.executor.testing.InstantTaskExecutorRule
 import info.alkor.bleinquirer.bluetooth.specific.XiaomiSensor
+import info.alkor.bleinquirer.persistence.BtNameMapper
 import info.alkor.bleinquirer.ui.BtLeDeviceModel
-import info.alkor.bleinquirer.ui.BtNameMapper
+import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.mockk
 import org.junit.Assert.*
@@ -71,7 +72,7 @@ class DevicesModelTest {
             assertFalse(it.useCustomName)
         }
 
-        instance.updateDevice(BtLeDeviceModel(address, name = customName, useCustomName = true))
+        instance.updateDeviceName(address, customName)
 
         verifyNonNullDevice {
             assertEquals(address, it.address)
@@ -145,7 +146,7 @@ class DevicesModelTest {
             assertFalse(it.useCustomName)
         }
 
-        instance.updateDevice(BtLeDeviceModel(address, name = customName, useCustomName = true))
+        instance.updateDeviceName(address, customName)
         verifyNonNullDevice {
             // custom name is set
             assertEquals(customName, it.name)
@@ -161,7 +162,7 @@ class DevicesModelTest {
     }
 
     private fun mockNameMapping(device: BluetoothDevice, customName: String) {
-        every { nameMapper.getName(device) } returns customName
+        coEvery { nameMapper.getName(device) } returns customName
     }
 
     private fun verifyNonNullDevice(verifier: (BtLeDeviceModel) -> Unit) {

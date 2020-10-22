@@ -17,8 +17,8 @@ import info.alkor.bleinquirer.bluetooth.description
 import info.alkor.bleinquirer.bluetooth.specific.XiaomiSensor
 import info.alkor.bleinquirer.bluetooth.specific.toHexString
 import info.alkor.bleinquirer.models.DevicesModel
+import info.alkor.bleinquirer.persistence.BtNameMapper
 import info.alkor.bleinquirer.ui.BtLeDeviceModel
-import info.alkor.bleinquirer.ui.BtNameMapper
 import info.alkor.bleinquirer.utils.LiveObject
 import info.alkor.bleinquirer.utils.Timeout
 import kotlinx.coroutines.Dispatchers
@@ -43,10 +43,6 @@ class BtLeApplication : Application() {
     private val devicesModel =
         LiveObject<List<BtLeDeviceModel>, MutableList<BtLeDeviceModel>>(mutableListOf())
 
-    private val devices = DevicesModel()
-
-    fun devices() = devices.devices()
-
     private fun setScanningInProgress() =
         scanningInProgress.update { it.compareAndSet(false, true) }
 
@@ -56,7 +52,10 @@ class BtLeApplication : Application() {
     }
 
     private var scanner: BtLeScanner? = null
-    private val nameMapper: BtNameMapper by lazy { BtNameMapper() }
+    private val nameMapper: BtNameMapper by lazy { BtNameMapper(applicationContext) }
+    private val devices: DevicesModel by lazy { DevicesModel(nameMapper) }
+
+    fun devices() = devices.devices()
 
     fun scanForDevices(): Boolean {
         val scanTimeout = DEFAULT_SCAN_TIMEOUT
@@ -112,12 +111,19 @@ class BtLeApplication : Application() {
             Log.d(result.device.description, "$service = ${it.value.toHexString()}")
         }
 
-        if (!devices.updateDevice(device, sensor)) {
-            devices.addDevice(device, sensor)
+        GlobalScope.launch {
+            if (!devices.updateDevice(device, sensor)) {
+                devices.addDevice(device, sensor)
+            }
         }
     }
 
-    fun updateDevice(updated: BtLeDeviceModel) = devices.updateDevice(updated)
+    fun updateNameMapping(item: BtLeDeviceModel, newName: String) {
+        GlobalScope.launch {
+            nameMapper.setName(item.address, newName)
+            devices.updateDeviceName(item.address, newName)
+        }
+    }
 
     private fun showToast(text: String) {
         GlobalScope.launch(Dispatchers.Main) {

@@ -2,12 +2,12 @@ package info.alkor.bleinquirer.models
 
 import android.bluetooth.BluetoothDevice
 import info.alkor.bleinquirer.bluetooth.specific.XiaomiSensor
+import info.alkor.bleinquirer.persistence.BtNameMapper
 import info.alkor.bleinquirer.ui.BtLeDeviceModel
-import info.alkor.bleinquirer.ui.BtNameMapper
 import info.alkor.bleinquirer.utils.LiveObject
 import java.util.*
 
-class DevicesModel(private val nameMapper: BtNameMapper = BtNameMapper()) {
+class DevicesModel(private val nameMapper: BtNameMapper) {
 
     private val devices =
         LiveObject<List<BtLeDeviceModel>, MutableList<BtLeDeviceModel>>(mutableListOf())
@@ -35,11 +35,12 @@ class DevicesModel(private val nameMapper: BtNameMapper = BtNameMapper()) {
         }
     }
 
-    fun updateDevice(updated: BtLeDeviceModel) = doUpdate(updated.address) { updated }
+    fun updateDeviceName(address: String, newName: String) =
+        doUpdate(address) { it.withCustomName(newName) }
 
-    fun updateDevice(device: BluetoothDevice, sensor: XiaomiSensor?) =
-        doUpdate(device.address) { original ->
-            val name = nameMapper.getName(device)
+    fun updateDevice(device: BluetoothDevice, sensor: XiaomiSensor?): Boolean {
+        val name = nameMapper.getName(device)
+        return doUpdate(device.address) { original ->
             return@doUpdate BtLeDeviceModel(
                 original.address,
                 if (original.useCustomName) original.name else name,
@@ -54,6 +55,7 @@ class DevicesModel(private val nameMapper: BtNameMapper = BtNameMapper()) {
                 useCustomName = original.useCustomName || name != device.name
             )
         }
+    }
 
     private fun doUpdate(address: String, updater: (BtLeDeviceModel) -> BtLeDeviceModel) =
         devices.update { list ->
@@ -71,3 +73,17 @@ class DevicesModel(private val nameMapper: BtNameMapper = BtNameMapper()) {
             false
         }
 }
+
+fun BtLeDeviceModel.withCustomName(newName: String) = BtLeDeviceModel(
+    address,
+    if (newName.isBlank()) name else newName, // do not allow for empty names
+    battery,
+    error,
+    temperature,
+    humidity,
+    luminance,
+    moisture,
+    fertility,
+    lastUpdate,
+    !newName.isBlank() // mark name as updated only if it is not blank
+)

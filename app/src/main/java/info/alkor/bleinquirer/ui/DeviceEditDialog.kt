@@ -9,7 +9,6 @@ import android.widget.EditText
 import android.widget.TextView
 import info.alkor.bleinquirer.BtLeApplication
 import info.alkor.bleinquirer.R
-import java.util.*
 
 class DeviceEditDialog(ctx: Context) : Dialog(ctx) {
 
@@ -34,23 +33,10 @@ class DeviceEditDialog(ctx: Context) : Dialog(ctx) {
     }
 
     private fun updateName(newName: String) {
-        if (newName != item?.name) {
+        val model = item
+        if (model != null && newName != model.name) {
             val app = context.applicationContext as BtLeApplication
-            app.updateDevice(
-                BtLeDeviceModel(
-                    item!!.address,
-                    if (newName.isBlank()) item!!.name else newName, // do not allow for empty names
-                    item!!.battery,
-                    null,
-                    item!!.temperature,
-                    item!!.humidity,
-                    item!!.luminance,
-                    item!!.moisture,
-                    item!!.fertility,
-                    Date(),
-                    useCustomName = !newName.isBlank() // mark name as updated only if it is not blank
-                )
-            )
+            app.updateNameMapping(model, newName)
         }
     }
 

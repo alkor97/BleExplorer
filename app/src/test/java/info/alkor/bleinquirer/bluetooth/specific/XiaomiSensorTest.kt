@@ -80,7 +80,7 @@ class XiaomiSensorTest {
         val sensor = XiaomiSensor.parse(data)
 
         assertEquals("b8:7c:6f:44:5f:f2", sensor.address)
-        assertEquals(21, sensor.temperature)
+        assertEquals(21.0, sensor.temperature)
     }
 
     private fun bytes(data: String) = data.split(" ")
