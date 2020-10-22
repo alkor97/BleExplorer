@@ -62,20 +62,17 @@ class BtLeApplication : Application() {
 
         if (setScanningInProgress()) {
             GlobalScope.launch {
-                try {
-                    scanForDevices(scanTimeout)
-                    showToast("Scanning completed with %d devices".format(devicesModel.live().value?.size))
-                    resetScanningInProgress()
-                } catch (e: Throwable) {
-                    Log.e("BtCoroutine", "exception while processing", e)
-                }
+                val count = scanForDevices(scanTimeout)
+                showToast("Scanning completed with $count devices.")
+                resetScanningInProgress()
             }
             return true
         }
         return false
     }
 
-    private fun scanForDevices(timeout: Timeout) {
+    private fun scanForDevices(timeout: Timeout): Int {
+        var count = 0
         if (scanner == null) {
             try {
                 scanner = BtLeScanner(btAdapter!!)
@@ -83,7 +80,7 @@ class BtLeApplication : Application() {
                     it.scan(timeout) { result ->
                         val device = result.device
                         if (device.name != null) {
-                            addOrUpdateDevice(result)
+                            count += addOrUpdateDevice(result)
                         }
                     }?.apply {
                         showToast("Scanning failed due to %s".format(this))
@@ -93,13 +90,14 @@ class BtLeApplication : Application() {
                 scanner = null
             }
         }
+        return count
     }
 
     fun stopScanning() {
         scanner?.stopScanning("stopped by user")
     }
 
-    private fun addOrUpdateDevice(result: ScanResult) {
+    private fun addOrUpdateDevice(result: ScanResult): Int {
         val device = result.device
         val sensor =
             result.scanRecord?.serviceData?.filter { Characteristic.MI_SERVICE.uuid == it.key.uuid }
@@ -111,18 +109,16 @@ class BtLeApplication : Application() {
             Log.d(result.device.description, "$service = ${it.value.toHexString()}")
         }
 
-        GlobalScope.launch {
-            if (!devices.updateDevice(device, sensor)) {
-                devices.addDevice(device, sensor)
-            }
+        if (!devices.updateDevice(device, sensor)) {
+            devices.addDevice(device, sensor)
+            return 1
         }
+        return 0
     }
 
     fun updateNameMapping(item: BtLeDeviceModel, newName: String) {
-        GlobalScope.launch {
-            nameMapper.setName(item.address, newName)
-            devices.updateDeviceName(item.address, newName)
-        }
+        nameMapper.setName(item.address, newName)
+        devices.updateDeviceName(item.address, newName)
     }
 
     private fun showToast(text: String) {
