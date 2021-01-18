@@ -17,12 +17,32 @@ class XiaomiSensorTest {
     }
 
     @Test
+    fun testNegativeTemperatureAndHumidityParsing() {
+        val data = bytes("50 20 aa 01 28 36 f9 32 34 2d 58 0d 10 04 da ff 60 02")
+        val sensor = XiaomiSensor.parse(data)
+
+        assertEquals("58:2d:34:32:f9:36", sensor.address)
+        assertEquals(-3.8, sensor.temperature)
+        assertEquals(60.8, sensor.humidity)
+    }
+
+    @Test
     fun testTemperatureParsing() {
         val data = bytes("50 20 aa 01 c0 f6 16 33 34 2d 58 04 10 02 e8 00")
         val sensor = XiaomiSensor.parse(data)
 
         assertEquals("58:2d:34:33:16:f6", sensor.address)
         assertEquals(23.2, sensor.temperature)
+        assertNull(sensor.humidity)
+    }
+
+    @Test
+    fun testNegativeTemperatureParsing() {
+        val data = bytes("50 20 aa 01 60 36 f9 32 34 2d 58 04 10 02 d7 ff")
+        val sensor = XiaomiSensor.parse(data)
+
+        assertEquals("58:2d:34:32:f9:36", sensor.address)
+        assertEquals(-4.1, sensor.temperature)
         assertNull(sensor.humidity)
     }
 

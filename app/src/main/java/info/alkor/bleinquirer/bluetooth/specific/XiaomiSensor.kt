@@ -78,7 +78,7 @@ data class XiaomiSensor(
         private const val TemperatureAndHumidity = 0x100D
 
         private fun parseHeader(bytes: ByteArray): Header {
-            val frameControl = readShort(bytes, 0)
+            val frameControl = readUnsignedShort(bytes, 0)
             val version = frameControl shr 12
             val flags = frameControl and 0xfff
             return Header(
@@ -129,17 +129,17 @@ data class XiaomiSensor(
             var moisture: Int? = null
             var fertility: Int? = null
             if (header.flags.hasEvent) {
-                val eventId = readShort(bytes, offset)
+                val eventId = readUnsignedShort(bytes, offset)
                 offset += 2
                 val dataLength = readByte(bytes, offset)
                 ++offset
                 if (eventId == Temperature) {
                     temperature = readShort(bytes, offset) / 10.0
                 } else if (eventId == Humidity) {
-                    humidity = readShort(bytes, offset) / 10.0
+                    humidity = readUnsignedShort(bytes, offset) / 10.0
                 } else if (eventId == TemperatureAndHumidity) {
                     temperature = readShort(bytes, offset) / 10.0
-                    humidity = readShort(bytes, offset + 2) / 10.0
+                    humidity = readUnsignedShort(bytes, offset + 2) / 10.0
                 } else if (eventId == KettleStatusAndTemperature) {
                     temperature = readByte(bytes, offset + 1).toDouble()
                 } else if (eventId == Battery) {
@@ -170,7 +170,12 @@ data class XiaomiSensor(
         private fun readByte(bytes: ByteArray, offset: Int) = bytes[offset].toInt() and 0xff
         private fun readShort(bytes: ByteArray, offset: Int) = ByteBuffer.wrap(bytes, offset, 2)
             .order(ByteOrder.LITTLE_ENDIAN)
-            .short.toInt() and 0xffff
+            .short.toInt()
+
+        private fun readUnsignedShort(bytes: ByteArray, offset: Int) =
+            ByteBuffer.wrap(bytes, offset, 2)
+                .order(ByteOrder.LITTLE_ENDIAN)
+                .short.toInt() and 0xffff
     }
 }
 
